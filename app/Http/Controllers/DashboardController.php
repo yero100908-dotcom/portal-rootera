@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Attendance;
-use App\Models\Cashflow;
 use App\Models\ContentCalendar;
 use App\Models\Order;
 use App\Models\User;
@@ -24,20 +23,22 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
 
-        // Data for Owner & Admin
+        // Financial Data for Owner & Admin
         $financials = null;
         if ($user->isOwner() || $user->isAdmin()) {
             $financials = $this->financialService->getFinancialSummary();
         }
 
-        // Attendance stats
-        $todayAttendance = Attendance::whereDate('waktu_presensi', today())->get();
+        // Real-time Attendance Stats
+        $todayAttendanceQuery = Attendance::whereDate('waktu_presensi', today());
         $totalUsers = User::where('is_active', true)->count();
-        $todayCheckedIn = $todayAttendance->where('tipe', 'masuk')->count();
-        $todayLate = $todayAttendance->where('tipe', 'masuk')->where('status', 'terlambat')->count();
+        $todayCheckedIn = (clone $todayAttendanceQuery)->where('tipe', 'masuk')->distinct('user_id')->count('user_id');
+        $todayLate = (clone $todayAttendanceQuery)->where('tipe', 'masuk')->where('status', 'terlambat')->count();
+        $todayAttendance = $todayAttendanceQuery->with('user')->latest('waktu_presensi')->get();
 
-        // Content planner stats
-        $upcomingContents = ContentCalendar::where('scheduled_at', '>=', now())
+        // Content planner (status != published)
+        $upcomingContents = ContentCalendar::with('assignee')
+            ->where('status', '!=', 'published')
             ->orderBy('scheduled_at', 'asc')
             ->take(5)
             ->get();
@@ -48,7 +49,11 @@ class DashboardController extends Controller
             ->take(10)
             ->get();
 
+        // Recent Orders
         $recentOrders = Order::latest()->take(5)->get();
+
+        // All users list for modal selections
+        $usersList = User::where('is_active', true)->get();
 
         return view('dashboard', compact(
             'user',
@@ -59,7 +64,8 @@ class DashboardController extends Controller
             'todayLate',
             'upcomingContents',
             'personalAttendance',
-            'recentOrders'
+            'recentOrders',
+            'usersList'
         ));
     }
 }

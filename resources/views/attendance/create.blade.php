@@ -1,35 +1,32 @@
 <x-app-layout>
     <x-slot name="header">
-        <div>
-            <h2 class="font-bold text-2xl text-white leading-tight flex items-center gap-2">
-                <i class="ti ti-camera text-indigo-400"></i> Presensi Wajah Real-Time (Face Recognition)
-            </h2>
-            <p class="text-sm text-slate-400 mt-1">Posisikan wajah Anda tegak lurus di depan kamera untuk melakukan Check-In atau Check-Out</p>
-        </div>
-        <div>
-            <a href="{{ route('attendance.index') }}" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold rounded-xl text-sm transition border border-slate-700">
+        <div class="flex items-center justify-between w-full">
+            <div>
+                <h1 class="text-xl font-bold text-white tracking-tight">Presensi Wajah Real-Time</h1>
+                <p class="text-xs text-slate-400 mt-0.5">Sistem deteksi & verifikasi presensi wajah otomatis via kamera browser</p>
+            </div>
+            <a href="{{ route('attendance.index') }}" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg border border-slate-700 transition">
                 &larr; Rekap Absensi
             </a>
         </div>
     </x-slot>
 
-    <div class="max-w-4xl mx-auto space-y-8" x-data="faceAttendanceApp()">
-        <!-- Camera Stream Card -->
-        <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+    <div class="max-w-3xl mx-auto space-y-6" x-data="faceAttendanceApp()">
+        
+        <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 sm:p-6 shadow-sm relative space-y-5">
             
-            <div class="flex flex-col md:flex-row items-center justify-between gap-6 mb-6">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
                 <div>
-                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                        <span class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span> Real-time Web Camera Feed
-                    </h3>
-                    <p class="text-xs text-slate-400">Pastikan pencahayaan cukup dan wajah terlihat jelas di frame</p>
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
+                        <h3 class="text-sm font-bold text-white">Live Camera Stream</h3>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-0.5">Posisikan wajah Anda berada di tengah kotak pemindai</p>
                 </div>
-                
-                <!-- Role selection for Admin/Owner manual override, otherwise automatic for logged in user -->
+
                 @if(Auth::user()->isOwner() || Auth::user()->isAdmin())
-                    <div class="w-full md:w-auto">
-                        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Presensi Untuk (Admin Override)</label>
-                        <select x-model="selectedUserId" class="bg-slate-950 border border-slate-700 text-slate-200 text-sm rounded-xl px-3 py-2 w-full focus:ring-2 focus:ring-indigo-500">
+                    <div class="w-full sm:w-auto">
+                        <select x-model="selectedUserId" class="bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-lg px-3 py-2 w-full focus:ring-1 focus:ring-indigo-500">
                             <option value="">-- Mode Otomatis (Face Recognition) --</option>
                             @foreach($users as $usr)
                                 <option value="{{ $usr->id }}">{{ $usr->name }} ({{ strtoupper($usr->role) }})</option>
@@ -39,49 +36,46 @@
                 @endif
             </div>
 
-            <!-- Video & Canvas Display Box -->
-            <div class="relative w-full aspect-video bg-slate-950 rounded-2xl overflow-hidden border-2 border-indigo-500/30 shadow-inner flex items-center justify-center group">
-                <!-- Video Feed -->
+            <!-- Video Stream Container -->
+            <div class="relative w-full aspect-video bg-slate-950 rounded-xl overflow-hidden border border-slate-800 flex items-center justify-center">
                 <video id="webcam" autoplay playsinline muted class="w-full h-full object-cover transform -scale-x-100"></video>
+                <canvas id="snapshotCanvas" class="hidden"></canvas>
 
-                <!-- Face Scanner Target Overlay Box -->
+                <!-- Scanner Reticle Box -->
                 <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
-                    <div class="w-64 h-64 border-2 border-dashed border-indigo-400/80 rounded-3xl relative flex items-center justify-center shadow-[0_0_50px_rgba(99,102,241,0.25)]">
-                        <div class="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-indigo-400"></div>
-                        <div class="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-indigo-400"></div>
-                        <div class="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-indigo-400"></div>
-                        <div class="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-indigo-400"></div>
+                    <div class="w-56 h-56 border border-dashed border-indigo-400/80 rounded-2xl relative flex items-center justify-center">
+                        <div class="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-indigo-400"></div>
+                        <div class="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-indigo-400"></div>
+                        <div class="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-indigo-400"></div>
+                        <div class="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-indigo-400"></div>
                         
-                        <div class="text-center bg-slate-900/70 backdrop-blur px-3 py-1.5 rounded-full border border-indigo-500/30">
-                            <span class="text-xs font-bold text-indigo-300 animate-pulse"><i class="ti ti-scan"></i> Posisikan Wajah</span>
-                        </div>
+                        <span class="text-[11px] font-semibold text-indigo-300 bg-slate-950/80 px-3 py-1 rounded-full border border-indigo-500/30">
+                            <i class="ti ti-scan me-1"></i> Deteksi Wajah
+                        </span>
                     </div>
                 </div>
 
-                <!-- Hidden Canvas for Snapshot Capture -->
-                <canvas id="snapshotCanvas" class="hidden"></canvas>
-
-                <!-- Captured Snapshot Overlay Preview -->
-                <div x-show="capturedImage" class="absolute inset-0 bg-slate-950/90 z-20 flex flex-col items-center justify-center p-4">
-                    <img :src="capturedImage" class="w-64 h-48 object-cover rounded-2xl border-2 border-indigo-500 shadow-xl mb-4">
-                    <p class="text-xs text-indigo-300 font-semibold mb-2">Snapshot Presensi Berhasil Diambil!</p>
+                <!-- Snapshot Overlay -->
+                <div x-show="capturedImage" class="absolute inset-0 bg-slate-950/90 z-20 flex flex-col items-center justify-center p-4" x-cloak>
+                    <img :src="capturedImage" class="w-56 h-40 object-cover rounded-lg border border-indigo-500 mb-3 shadow-md">
+                    <p class="text-xs text-indigo-300 font-semibold">Snapshot Berhasil Diambil!</p>
                 </div>
             </div>
 
             <!-- Action Controls -->
-            <div class="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
-                <button @click="submitAttendance('masuk')" :disabled="loading" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-2xl shadow-lg shadow-emerald-600/30 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
-                    <i class="ti ti-login text-xl"></i> Check-In (Masuk)
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                <button @click="submitAttendance('masuk')" :disabled="loading" class="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-lg shadow-sm transition flex items-center justify-center gap-2">
+                    <i class="ti ti-login text-base"></i> Check-In (Masuk)
                 </button>
-                <button @click="submitAttendance('pulang')" :disabled="loading" class="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-rose-600 to-pink-600 hover:from-rose-500 hover:to-pink-500 text-white font-bold rounded-2xl shadow-lg shadow-rose-600/30 transition transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
-                    <i class="ti ti-logout text-xl"></i> Check-Out (Pulang)
+                <button @click="submitAttendance('pulang')" :disabled="loading" class="w-full sm:w-auto px-6 py-2.5 bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs rounded-lg shadow-sm transition flex items-center justify-center gap-2">
+                    <i class="ti ti-logout text-base"></i> Check-Out (Pulang)
                 </button>
             </div>
 
-            <!-- Note / Status Display -->
-            <div class="mt-6 text-center">
+            <div class="text-center pt-2">
                 <p x-text="statusText" class="text-xs text-slate-400 font-medium"></p>
             </div>
+
         </div>
     </div>
 
@@ -90,11 +84,10 @@
             return {
                 videoElement: null,
                 canvasElement: null,
-                stream: null,
                 capturedImage: null,
                 selectedUserId: '',
                 loading: false,
-                statusText: 'Kamera aktif. Silakan tekan tombol Check-In atau Check-Out.',
+                statusText: 'Kamera aktif. Posisikan wajah dan pilih Check-In atau Check-Out.',
 
                 init() {
                     this.videoElement = document.getElementById('webcam');
@@ -104,14 +97,12 @@
 
                 async startCamera() {
                     try {
-                        this.stream = await navigator.mediaDevices.getUserMedia({
+                        const stream = await navigator.mediaDevices.getUserMedia({
                             video: { width: 1280, height: 720, facingMode: 'user' }
                         });
-                        this.videoElement.srcObject = this.stream;
+                        this.videoElement.srcObject = stream;
                     } catch (err) {
-                        console.error('Kamera gagal diakses:', err);
                         this.statusText = 'Gagal mengakses kamera browser. Mohon izinkan akses webcam.';
-                        Swal.fire('Akses Kamera Ditolak', 'Silakan izinkan akses kamera di browser Anda.', 'error');
                     }
                 },
 
@@ -122,7 +113,6 @@
                     canvas.height = video.videoHeight || 480;
 
                     const ctx = canvas.getContext('2d');
-                    // Draw video image onto canvas (unmirror horizontally)
                     ctx.translate(canvas.width, 0);
                     ctx.scale(-1, 1);
                     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -132,7 +122,7 @@
 
                 async submitAttendance(type) {
                     this.loading = true;
-                    this.statusText = 'Memproses pencocokan wajah & menyimpan log presensi...';
+                    this.statusText = 'Memproses verifikasi & menyimpan presensi...';
                     
                     const imageData = this.captureSnapshot();
                     this.capturedImage = imageData;
@@ -158,23 +148,23 @@
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Presensi Berhasil!',
-                                html: `<b>${resData.user.name}</b> (${resData.user.role})<br><span class="text-sm font-semibold text-emerald-400">${resData.message}</span>`,
-                                timer: 3500
+                                html: `<b class="text-slate-100">${resData.user.name}</b> (${resData.user.role})<br><span class="text-xs text-emerald-400 font-medium">${resData.message}</span>`,
+                                timer: 3000,
+                                background: '#0f172a',
+                                color: '#f8fafc'
                             });
                             this.statusText = resData.message;
                         } else {
-                            Swal.fire('Gagal Presensi', resData.message || 'Wajah tidak terverifikasi.', 'error');
-                            this.statusText = 'Presensi gagal. Coba lagi.';
+                            Swal.fire({ icon: 'error', title: 'Presensi Gagal', text: resData.message, background: '#0f172a', color: '#f8fafc' });
+                            this.statusText = 'Presensi gagal. Silakan coba lagi.';
                         }
                     } catch (err) {
-                        console.error('Presensi Error:', err);
-                        Swal.fire('Error System', 'Terjadi kesalahan komunikasi dengan server.', 'error');
                         this.statusText = 'Terjadi kesalahan sistem.';
                     } finally {
                         setTimeout(() => {
                             this.capturedImage = null;
                             this.loading = false;
-                        }, 2500);
+                        }, 2000);
                     }
                 }
             }

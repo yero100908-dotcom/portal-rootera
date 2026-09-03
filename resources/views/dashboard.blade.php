@@ -1,216 +1,253 @@
 <x-app-layout>
     <x-slot name="header">
-        <div>
-            <h2 class="font-bold text-2xl text-white leading-tight flex items-center gap-2">
-                <i class="ti ti-dashboard text-indigo-400"></i> Dashboard Operasional & Modul Enterprise
-            </h2>
-            <p class="text-sm text-slate-400 mt-1">Selamat datang kembali, <span class="text-indigo-300 font-semibold">{{ $user->name }}</span> (Role: <span class="uppercase tracking-wide text-indigo-400 font-semibold">{{ $user->role }}</span>)</p>
-        </div>
-        <div class="flex items-center gap-3">
-            <a href="{{ route('attendance.create') }}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold rounded-xl text-sm shadow-lg shadow-indigo-600/30 transition transform hover:-translate-y-0.5">
-                <i class="ti ti-camera text-lg"></i> Scan Absensi Wajah
-            </a>
+        <div class="flex items-center justify-between w-full">
+            <div>
+                <h1 class="text-xl font-bold text-white tracking-tight">Dashboard Operasional</h1>
+                <p class="text-xs text-slate-400 mt-0.5">Overview real-time presensi, finansial, order, dan jadwal media sosial</p>
+            </div>
         </div>
     </x-slot>
 
-    <div class="space-y-8">
-        <!-- Metric Cards Grid -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div class="space-y-6" x-data="dashboardApp()">
+        
+        <!-- Header Quick Action Controls -->
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-900/40 border border-slate-800/80 rounded-xl p-3.5">
+            <div class="flex items-center gap-2">
+                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span class="text-xs font-semibold text-slate-300">Live System Status: Normal</span>
+            </div>
 
-            <!-- Card 1: Attendance Today -->
-            <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden group hover:border-indigo-500/50 transition duration-300">
-                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-indigo-500/10 rounded-full blur-xl group-hover:bg-indigo-500/20 transition"></div>
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Presensi Hari Ini</p>
-                        <h3 class="text-3xl font-extrabold text-white mt-1">{{ $todayCheckedIn }} <span class="text-xs font-normal text-slate-400">/ {{ $totalUsers }} user</span></h3>
-                    </div>
-                    <div class="w-12 h-12 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
-                        <i class="ti ti-user-check text-2xl"></i>
+            <div class="flex flex-wrap items-center gap-2">
+                @if($user->isOwner() || $user->isAdmin())
+                    <button @click="showTransactionModal = true" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition">
+                        <i class="ti ti-plus text-indigo-400"></i> Catat Transaksi
+                    </button>
+                    <button @click="showOrderModal = true" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition">
+                        <i class="ti ti-shopping-cart-plus text-emerald-400"></i> Buat Order Baru
+                    </button>
+                @endif
+
+                @if($user->isOwner() || $user->isAdmin() || $user->isMentor())
+                    <button @click="showContentModal = true" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold rounded-lg border border-slate-700 transition">
+                        <i class="ti ti-calendar-plus text-purple-400"></i> Jadwal Konten
+                    </button>
+                @endif
+
+                <a href="{{ route('attendance.create') }}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+                    <i class="ti ti-camera"></i> Scan Kamera
+                </a>
+            </div>
+        </div>
+
+        <!-- 4-Column Responsive Metric Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+
+            <!-- Metric 1: Presensi Hari Ini -->
+            <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 shadow-sm hover:border-slate-700 transition">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Presensi Hari Ini</span>
+                    <div class="w-8 h-8 rounded-lg bg-indigo-500/10 text-indigo-400 flex items-center justify-center border border-indigo-500/20">
+                        <i class="ti ti-user-check text-lg"></i>
                     </div>
                 </div>
-                <div class="mt-4 flex items-center gap-2 text-xs text-slate-400">
-                    <span class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 font-semibold">{{ $todayLate }} Terlambat</span>
-                    <span>cut off: 08:00 WIB</span>
+                <div class="flex items-baseline gap-2">
+                    <span class="text-2xl font-bold text-white tracking-tight">{{ $todayCheckedIn }}</span>
+                    <span class="text-xs text-slate-400">/ {{ $totalUsers }} User Aktif</span>
+                </div>
+                <div class="mt-3 flex items-center justify-between text-xs">
+                    <span class="text-amber-400 font-medium">{{ $todayLate }} Terlambat</span>
+                    <a href="{{ route('attendance.index') }}" class="text-indigo-400 hover:underline">Detail &rarr;</a>
                 </div>
             </div>
 
-            <!-- Financial Cards for Owner & Admin -->
             @if($user->isOwner() || $user->isAdmin())
-                <!-- Card 2: Total Pemasukan -->
-                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden group hover:border-emerald-500/50 transition duration-300">
-                    <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-emerald-500/10 rounded-full blur-xl group-hover:bg-emerald-500/20 transition"></div>
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Total Pemasukan</p>
-                            <h3 class="text-2xl font-extrabold text-emerald-400 mt-1">Rp {{ number_format($financials['total_inflow'] ?? 0, 0, ',', '.') }}</h3>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
-                            <i class="ti ti-arrow-up-right text-2xl"></i>
+                <!-- Metric 2: Total Pemasukan -->
+                <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 shadow-sm hover:border-slate-700 transition">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Total Pemasukan</span>
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                            <i class="ti ti-arrow-up-right text-lg"></i>
                         </div>
                     </div>
-                    <p class="mt-4 text-xs text-slate-400">Cashflow masuk terverifikasi</p>
+                    <div class="text-2xl font-bold text-white tracking-tight">
+                        Rp {{ number_format($financials['total_inflow'] ?? 0, 0, ',', '.') }}
+                    </div>
+                    <div class="mt-3 flex items-center justify-between text-xs">
+                        <span class="text-slate-400">Cashflow & Order Lunas</span>
+                        <a href="{{ route('finance.index') }}" class="text-emerald-400 hover:underline">Arus Kas &rarr;</a>
+                    </div>
                 </div>
 
-                <!-- Card 3: Total Pengeluaran -->
-                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden group hover:border-rose-500/50 transition duration-300">
-                    <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-rose-500/10 rounded-full blur-xl group-hover:bg-rose-500/20 transition"></div>
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Total Pengeluaran</p>
-                            <h3 class="text-2xl font-extrabold text-rose-400 mt-1">Rp {{ number_format($financials['total_outflow'] ?? 0, 0, ',', '.') }}</h3>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center border border-rose-500/30">
-                            <i class="ti ti-arrow-down-left text-2xl"></i>
+                <!-- Metric 3: Total Pengeluaran -->
+                <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 shadow-sm hover:border-slate-700 transition">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Total Pengeluaran</span>
+                        <div class="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-400 flex items-center justify-center border border-rose-500/20">
+                            <i class="ti ti-arrow-down-left text-lg"></i>
                         </div>
                     </div>
-                    <p class="mt-4 text-xs text-slate-400">Operasional & Gaji Mentor</p>
+                    <div class="text-2xl font-bold text-white tracking-tight">
+                        Rp {{ number_format($financials['total_outflow'] ?? 0, 0, ',', '.') }}
+                    </div>
+                    <div class="mt-3 flex items-center justify-between text-xs">
+                        <span class="text-slate-400">Operasional & Gaji</span>
+                        <a href="{{ route('finance.index') }}" class="text-rose-400 hover:underline">Rincian &rarr;</a>
+                    </div>
                 </div>
 
-                <!-- Card 4: Saldo / Laba Bersih -->
-                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl relative overflow-hidden group hover:border-purple-500/50 transition duration-300">
-                    <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-purple-500/10 rounded-full blur-xl group-hover:bg-purple-500/20 transition"></div>
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Saldo / Laba Bersih</p>
-                            <h3 class="text-2xl font-extrabold text-purple-300 mt-1">Rp {{ number_format($financials['net_profit'] ?? 0, 0, ',', '.') }}</h3>
-                        </div>
-                        <div class="w-12 h-12 rounded-xl bg-purple-500/20 text-purple-300 flex items-center justify-center border border-purple-500/30">
-                            <i class="ti ti-scale text-2xl"></i>
+                <!-- Metric 4: Saldo Bersih -->
+                <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 shadow-sm hover:border-slate-700 transition">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Saldo / Net Profit</span>
+                        <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center border border-purple-500/20">
+                            <i class="ti ti-scale text-lg"></i>
                         </div>
                     </div>
-                    <p class="mt-4 text-xs text-slate-400">Saldo bersih saat ini</p>
+                    <div class="text-2xl font-bold text-indigo-300 tracking-tight">
+                        Rp {{ number_format($financials['net_profit'] ?? 0, 0, ',', '.') }}
+                    </div>
+                    <div class="mt-3 flex items-center justify-between text-xs">
+                        <span class="text-slate-400">Selisih Net Real-time</span>
+                        @if($user->isOwner())
+                            <a href="{{ route('finance.profit_loss') }}" class="text-purple-400 hover:underline">Laba Rugi &rarr;</a>
+                        @else
+                            <span class="text-slate-500">Owner Verified</span>
+                        @endif
+                    </div>
                 </div>
             @else
-                <!-- Cards for Mentor / Karyawan / Siswa -->
-                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl relative">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Status Kehadiran Anda</p>
-                            <h3 class="text-xl font-bold text-indigo-300 mt-1">
-                                @if($personalAttendance->first() && $personalAttendance->first()->waktu_presensi->isToday())
-                                    <span class="text-emerald-400"><i class="ti ti-circle-check"></i> Sudah Presensi Hari Ini</span>
-                                @else
-                                    <span class="text-amber-400"><i class="ti ti-clock font-normal"></i> Belum Presensi</span>
-                                @endif
-                            </h3>
+                <!-- Non-financial cards for Karyawan / Siswa -->
+                <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 shadow-sm hover:border-slate-700 transition">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Status Hari Ini</span>
+                        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                            <i class="ti ti-user-check text-lg"></i>
                         </div>
                     </div>
-                    <a href="{{ route('attendance.create') }}" class="mt-4 inline-block text-xs font-semibold text-indigo-400 hover:underline">Buka kamera presensi &rarr;</a>
+                    <div class="text-sm font-semibold text-white">
+                        @if($personalAttendance->first() && $personalAttendance->first()->waktu_presensi->isToday())
+                            <span class="text-emerald-400">Sudah Presensi ({{ $personalAttendance->first()->waktu_presensi->format('H:i') }})</span>
+                        @else
+                            <span class="text-amber-400">Belum Presensi</span>
+                        @endif
+                    </div>
+                    <a href="{{ route('attendance.create') }}" class="mt-3 block text-xs text-indigo-400 hover:underline">Absen Sekarang &rarr;</a>
                 </div>
 
-                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl relative">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-xs font-medium uppercase tracking-wider text-slate-400">Jadwal Konten Mendatang</p>
-                            <h3 class="text-3xl font-extrabold text-indigo-300 mt-1">{{ $upcomingContents->count() }} <span class="text-xs font-normal text-slate-400">post</span></h3>
+                <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 shadow-sm hover:border-slate-700 transition">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Jadwal Konten</span>
+                        <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center border border-purple-500/20">
+                            <i class="ti ti-calendar-event text-lg"></i>
                         </div>
                     </div>
-                    <a href="{{ route('content.index') }}" class="mt-4 inline-block text-xs font-semibold text-indigo-400 hover:underline">Lihat kalender &rarr;</a>
+                    <div class="text-2xl font-bold text-white tracking-tight">
+                        {{ $upcomingContents->count() }} Post
+                    </div>
+                    <a href="{{ route('content.index') }}" class="mt-3 block text-xs text-purple-400 hover:underline">Lihat Kalender &rarr;</a>
                 </div>
             @endif
 
         </div>
 
-        <!-- Section 2: Recent Activity & Quick Modules -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <!-- Left 2 Cols: Content Schedule & Orders -->
-            <div class="lg:col-span-2 space-y-8">
+        <!-- 2-Column Responsive Section: Content Schedule & Orders -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <!-- Left 2 Cols: Content Planner & Recent Orders -->
+            <div class="lg:col-span-2 space-y-6">
 
                 <!-- Content Planner Widget -->
                 @if($user->isOwner() || $user->isAdmin() || $user->isMentor())
-                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                        <div class="flex items-center justify-between mb-6">
+                    <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
                             <div>
-                                <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                                    <i class="ti ti-calendar-event text-indigo-400"></i> Agendakan Konten Sosial Media
+                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                    <i class="ti ti-calendar-event text-purple-400"></i> Agenda Konten Mendatang (Aktif)
                                 </h3>
-                                <p class="text-xs text-slate-400">Jadwal publikasi konten mendatang di Instagram, TikTok, YouTube</p>
+                                <p class="text-xs text-slate-400">Daftar konten yang belum berstatus Published</p>
                             </div>
-                            <a href="{{ route('content.index') }}" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 rounded-lg transition border border-slate-700">
-                                Buka Kalender Full &rarr;
+                            <a href="{{ route('content.index') }}" class="text-xs font-semibold text-indigo-400 hover:underline">
+                                Buka Kalender &rarr;
                             </a>
                         </div>
 
-                        <div class="space-y-3">
+                        <div class="space-y-2.5">
                             @forelse($upcomingContents as $content)
-                                <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-4 flex items-center justify-between hover:border-slate-700 transition">
-                                    <div class="flex items-center gap-4">
-                                        <div class="w-10 h-10 rounded-lg bg-indigo-600/20 border border-indigo-500/30 text-indigo-300 flex items-center justify-center font-bold text-xs uppercase">
-                                            {{ substr($content->platform, 0, 2) }}
+                                <div class="bg-slate-950/80 border border-slate-800/80 rounded-lg p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-slate-700 transition">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-8 h-8 rounded-lg bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-xs">
+                                            {{ strtoupper(substr($content->platform, 0, 2)) }}
                                         </div>
                                         <div>
-                                            <h4 class="font-bold text-sm text-slate-200">{{ $content->title }}</h4>
-                                            <p class="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
-                                                <span><i class="ti ti-clock"></i> {{ $content->scheduled_at->format('d M Y, H:i') }} WIB</span>
+                                            <h4 class="text-xs font-bold text-white">{{ $content->title }}</h4>
+                                            <p class="text-[11px] text-slate-400 flex items-center gap-2 mt-0.5">
+                                                <span><i class="ti ti-clock"></i> {{ $content->scheduled_at->format('d M Y, H:i') }}</span>
                                                 <span>&bull;</span>
-                                                <span>Assignee: {{ $content->assignee->name ?? 'Belum ada' }}</span>
+                                                <span>PIC: {{ $content->assignee->name ?? 'Belum ada' }}</span>
                                             </p>
                                         </div>
                                     </div>
-                                    <span class="px-3 py-1 text-xs font-semibold rounded-full uppercase border
-                                        @if($content->status === 'published') bg-emerald-500/20 text-emerald-300 border-emerald-500/30
-                                        @elseif($content->status === 'scheduled') bg-purple-500/20 text-purple-300 border-purple-500/30
-                                        @elseif($content->status === 'review') bg-blue-500/20 text-blue-300 border-blue-500/30
-                                        @elseif($content->status === 'production') bg-amber-500/20 text-amber-300 border-amber-500/30
-                                        @else bg-slate-700 text-slate-300 border-slate-600 @endif">
+                                    <span class="self-start sm:self-auto px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded border
+                                        @if($content->status === 'scheduled') bg-purple-500/10 text-purple-400 border-purple-500/20
+                                        @elseif($content->status === 'review') bg-blue-500/10 text-blue-400 border-blue-500/20
+                                        @elseif($content->status === 'production') bg-amber-500/10 text-amber-400 border-amber-500/20
+                                        @else bg-slate-800 text-slate-400 border-slate-700 @endif">
                                         {{ $content->status }}
                                     </span>
                                 </div>
                             @empty
-                                <div class="text-center py-6 text-slate-500 text-sm">
-                                    Belum ada jadwal konten mendatang.
+                                <div class="text-center py-6 text-slate-500 text-xs">
+                                    Tidak ada agenda konten aktif mendatang.
                                 </div>
                             @endforelse
                         </div>
                     </div>
                 @endif
 
-                <!-- Recent Orders Table (Owner & Admin) -->
+                <!-- Recent Orders Table -->
                 @if($user->isOwner() || $user->isAdmin())
-                    <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                        <div class="flex items-center justify-between mb-6">
+                    <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
                             <div>
-                                <h3 class="text-lg font-bold text-white flex items-center gap-2">
-                                    <i class="ti ti-shopping-cart text-indigo-400"></i> Transaksi Order Terkini
+                                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                    <i class="ti ti-shopping-cart text-emerald-400"></i> Transaksi Order Terbaru
                                 </h3>
-                                <p class="text-xs text-slate-400">Rincian pesanan terbaru dari klien & status pembayaran</p>
+                                <p class="text-xs text-slate-400">Rincian order masuk dan status pembayaran</p>
                             </div>
-                            <a href="{{ route('orders.index') }}" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 rounded-lg transition border border-slate-700">
+                            <a href="{{ route('orders.index') }}" class="text-xs font-semibold text-emerald-400 hover:underline">
                                 Kelola Order &rarr;
                             </a>
                         </div>
 
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm text-slate-300">
-                                <thead class="bg-slate-950/80 text-xs uppercase font-semibold text-slate-400 border-b border-slate-800">
+                            <table class="w-full text-left text-xs text-slate-300">
+                                <thead class="bg-slate-950 text-[11px] uppercase font-semibold text-slate-400 border-b border-slate-800">
                                     <tr>
-                                        <th class="px-4 py-3">No Order</th>
-                                        <th class="px-4 py-3">Klien</th>
-                                        <th class="px-4 py-3">Nominal</th>
-                                        <th class="px-4 py-3">Status</th>
+                                        <th class="px-3 py-2.5">No Order</th>
+                                        <th class="px-3 py-2.5">Klien</th>
+                                        <th class="px-3 py-2.5">Nominal</th>
+                                        <th class="px-3 py-2.5">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-slate-800/60">
                                     @forelse($recentOrders as $ord)
-                                        <tr class="hover:bg-slate-800/40">
-                                            <td class="px-4 py-3 font-mono text-xs font-semibold text-indigo-300">{{ $ord->order_number }}</td>
-                                            <td class="px-4 py-3 font-medium text-white">{{ $ord->client_name }}</td>
-                                            <td class="px-4 py-3 font-semibold text-slate-200">Rp {{ number_format($ord->total_amount, 0, ',', '.') }}</td>
-                                            <td class="px-4 py-3">
-                                                <span class="px-2.5 py-0.5 text-xs font-bold uppercase rounded-full border
-                                                    @if($ord->payment_status === 'lunas') bg-emerald-500/20 text-emerald-300 border-emerald-500/30
-                                                    @elseif($ord->payment_status === 'dp') bg-amber-500/20 text-amber-300 border-amber-500/30
-                                                    @elseif($ord->payment_status === 'pending') bg-blue-500/20 text-blue-300 border-blue-500/30
-                                                    @else bg-rose-500/20 text-rose-300 border-rose-500/30 @endif">
+                                        <tr class="hover:bg-slate-800/30">
+                                            <td class="px-3 py-2.5 font-mono font-semibold text-indigo-400">{{ $ord->order_number }}</td>
+                                            <td class="px-3 py-2.5 font-medium text-white">{{ $ord->client_name }}</td>
+                                            <td class="px-3 py-2.5 font-semibold text-slate-200">Rp {{ number_format($ord->total_amount, 0, ',', '.') }}</td>
+                                            <td class="px-3 py-2.5">
+                                                <span class="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded border
+                                                    @if($ord->payment_status === 'lunas') bg-emerald-500/10 text-emerald-400 border-emerald-500/20
+                                                    @elseif($ord->payment_status === 'dp') bg-amber-500/10 text-amber-400 border-amber-500/20
+                                                    @elseif($ord->payment_status === 'pending') bg-blue-500/10 text-blue-400 border-blue-500/20
+                                                    @else bg-rose-500/10 text-rose-400 border-rose-500/20 @endif">
                                                     {{ $ord->payment_status }}
                                                 </span>
                                             </td>
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="4" class="text-center py-4 text-slate-500 text-xs">Belum ada order.</td>
+                                            <td colspan="4" class="text-center py-4 text-slate-500 text-xs">Belum ada transaksi order.</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -221,50 +258,234 @@
 
             </div>
 
-            <!-- Right Col: Attendance Snapshot Logs -->
-            <div class="space-y-8">
-                <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                    <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                        <i class="ti ti-clock-check text-indigo-400"></i> Presensi Terbaru
+            <!-- Right Col: Attendance Snapshots -->
+            <div class="space-y-6">
+                <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 shadow-sm">
+                    <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                        <i class="ti ti-clock-check text-indigo-400"></i> Presensi Real-Time Hari Ini
                     </h3>
 
-                    <div class="space-y-4">
+                    <div class="space-y-3">
                         @php
                             $displayAttendance = ($user->isOwner() || $user->isAdmin()) ? $todayAttendance : $personalAttendance;
                         @endphp
 
                         @forelse($displayAttendance->take(5) as $att)
-                            <div class="flex items-center gap-3 p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
+                            <div class="flex items-center gap-3 p-2.5 bg-slate-950/80 border border-slate-800/80 rounded-lg">
                                 @if($att->foto_bukti)
-                                    <img src="{{ asset($att->foto_bukti) }}" alt="Snapshot" class="w-12 h-12 rounded-lg object-cover border border-slate-700">
+                                    <img src="{{ asset($att->foto_bukti) }}" alt="Snapshot" class="w-10 h-10 rounded-lg object-cover border border-slate-700">
                                 @else
-                                    <div class="w-12 h-12 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400">
-                                        <i class="ti ti-user text-xl"></i>
+                                    <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 border border-slate-700">
+                                        <i class="ti ti-user text-lg"></i>
                                     </div>
                                 @endif
                                 <div class="flex-1 min-w-0">
-                                    <h5 class="text-sm font-bold text-white truncate">{{ $att->user->name ?? 'User' }}</h5>
-                                    <p class="text-xs text-slate-400 mt-0.5">
-                                        <span class="uppercase font-semibold text-indigo-300">{{ $att->tipe }}</span> &bull; {{ $att->waktu_presensi->format('H:i') }} WIB
+                                    <h5 class="text-xs font-bold text-white truncate">{{ $att->user->name ?? 'User' }}</h5>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">
+                                        <span class="uppercase font-semibold text-indigo-400">{{ $att->tipe }}</span> &bull; {{ $att->waktu_presensi->format('H:i') }} WIB
                                     </p>
                                 </div>
-                                <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase rounded border
-                                    @if($att->status === 'tepat_waktu') bg-emerald-500/20 text-emerald-300 border-emerald-500/30
-                                    @else bg-rose-500/20 text-rose-300 border-rose-500/30 @endif">
+                                <span class="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded border
+                                    @if($att->status === 'tepat_waktu') bg-emerald-500/10 text-emerald-400 border-emerald-500/20
+                                    @else bg-rose-500/10 text-rose-400 border-rose-500/20 @endif">
                                     {{ str_replace('_', ' ', $att->status) }}
                                 </span>
                             </div>
                         @empty
-                            <p class="text-xs text-slate-500 text-center py-4">Belum ada aktivitas presensi.</p>
+                            <p class="text-xs text-slate-500 text-center py-4">Belum ada aktivitas presensi hari ini.</p>
                         @endforelse
                     </div>
 
-                    <a href="{{ route('attendance.index') }}" class="block w-full text-center mt-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-xs font-bold text-indigo-300 rounded-xl transition border border-slate-700">
-                        Lihat Seluruh Rekap Absensi &rarr;
+                    <a href="{{ route('attendance.index') }}" class="block w-full text-center mt-4 py-2 bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-300 rounded-lg transition border border-slate-700">
+                        Lihat Seluruh Log Absensi &rarr;
                     </a>
                 </div>
             </div>
 
         </div>
+
+        <!-- ==================== MODAL FORM CRUD INTERACTIVITY ==================== -->
+
+        <!-- 1. Modal Catat Transaksi Kas (Inflow / Outflow) -->
+        <div x-show="showTransactionModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4" x-cloak>
+            <div @click.away="showTransactionModal = false" class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-xl p-6 shadow-2xl space-y-5">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="ti ti-wallet text-indigo-400"></i> Catat Transaksi Arus Kas Baru
+                    </h3>
+                    <button @click="showTransactionModal = false" class="text-slate-400 hover:text-white"><i class="ti ti-x text-lg"></i></button>
+                </div>
+
+                <form method="POST" :action="txType === 'inflow' ? '{{ route('finance.inflow.store') }}' : '{{ route('finance.outflow.store') }}'" enctype="multipart/form-data" class="space-y-4">
+                    @csrf
+                    <div>
+                        <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Tipe Transaksi *</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" @click="txType = 'inflow'" :class="txType === 'inflow' ? 'bg-emerald-600 text-white font-semibold' : 'bg-slate-950 text-slate-400 border border-slate-800'" class="py-2 text-xs rounded-lg transition">
+                                <i class="ti ti-arrow-up-right"></i> Uang Masuk (Inflow)
+                            </button>
+                            <button type="button" @click="txType = 'outflow'" :class="txType === 'outflow' ? 'bg-rose-600 text-white font-semibold' : 'bg-slate-950 text-slate-400 border border-slate-800'" class="py-2 text-xs rounded-lg transition">
+                                <i class="ti ti-arrow-down-left"></i> Uang Keluar (Outflow)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Nominal (Rp) *</label>
+                            <input type="number" step="0.01" name="amount" required placeholder="500000" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Tanggal *</label>
+                            <input type="date" name="date" required value="{{ date('Y-m-d') }}" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Sumber / Peruntukan Dana *</label>
+                        <input type="text" name="source_destination" required placeholder="Contoh: Pembayaran Pelanggan / Gaji Mentor" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Kategori *</label>
+                        <input type="text" name="category" required placeholder="Contoh: Operasional / Penjualan" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500">
+                    </div>
+
+                    <div x-show="txType === 'outflow'">
+                        <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Upload Bukti Struk (Optional)</label>
+                        <input type="file" name="proof_file" accept="image/*,.pdf" class="w-full bg-slate-950 border border-slate-800 text-slate-300 text-xs rounded-lg px-2.5 py-1.5">
+                    </div>
+
+                    <div class="pt-3 flex items-center justify-end gap-2">
+                        <button type="button" @click="showTransactionModal = false" class="px-3.5 py-1.5 bg-slate-800 text-slate-300 text-xs font-semibold rounded-lg border border-slate-700">Batal</button>
+                        <button type="submit" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow-sm">Simpan Transaksi</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 2. Modal Buat Order Baru -->
+        <div x-show="showOrderModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4" x-cloak>
+            <div @click.away="showOrderModal = false" class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-xl p-6 shadow-2xl space-y-5">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="ti ti-shopping-cart text-emerald-400"></i> Buat Order Pesanan Klien Baru
+                    </h3>
+                    <button @click="showOrderModal = false" class="text-slate-400 hover:text-white"><i class="ti ti-x text-lg"></i></button>
+                </div>
+
+                <form method="POST" action="{{ route('orders.store') }}" class="space-y-4">
+                    @csrf
+                    <div>
+                        <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Nama Klien / Instansi *</label>
+                        <input type="text" name="client_name" required placeholder="Contoh: PT Synergy Media" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Rincian Barang / Jasa *</label>
+                        <textarea name="details" required rows="2" placeholder="Tuliskan rincian item..." class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500"></textarea>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Total Nominal (Rp) *</label>
+                            <input type="number" step="0.01" name="total_amount" required placeholder="10000000" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Tanggal Transaksi *</label>
+                            <input type="date" name="transaction_date" required value="{{ date('Y-m-d') }}" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Status Pembayaran *</label>
+                        <select name="payment_status" required class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500">
+                            <option value="pending">Pending (Belum Bayar)</option>
+                            <option value="dp">DP (Uang Muka)</option>
+                            <option value="lunas">Lunas (Otomatis Sync ke Arus Kas)</option>
+                        </select>
+                    </div>
+
+                    <div class="pt-3 flex items-center justify-end gap-2">
+                        <button type="button" @click="showOrderModal = false" class="px-3.5 py-1.5 bg-slate-800 text-slate-300 text-xs font-semibold rounded-lg border border-slate-700">Batal</button>
+                        <button type="submit" class="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold rounded-lg shadow-sm">Simpan Order</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 3. Modal Buat Jadwal Konten -->
+        <div x-show="showContentModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4" x-cloak>
+            <div @click.away="showContentModal = false" class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-xl p-6 shadow-2xl space-y-5">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                        <i class="ti ti-calendar-plus text-purple-400"></i> Buat Agenda Konten Media Sosial
+                    </h3>
+                    <button @click="showContentModal = false" class="text-slate-400 hover:text-white"><i class="ti ti-x text-lg"></i></button>
+                </div>
+
+                <form method="POST" action="{{ route('content.store') }}" class="space-y-4">
+                    @csrf
+                    <div>
+                        <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Judul / Topik Konten *</label>
+                        <input type="text" name="title" required placeholder="Contoh: Showcase Portofolio Client Q3" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Platform *</label>
+                            <select name="platform" required class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500">
+                                <option value="Instagram">Instagram</option>
+                                <option value="TikTok">TikTok</option>
+                                <option value="YouTube">YouTube</option>
+                                <option value="LinkedIn">LinkedIn</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Status Workflow *</label>
+                            <select name="status" required class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500">
+                                <option value="draft">Draft</option>
+                                <option value="production">Produksi</option>
+                                <option value="review">Review</option>
+                                <option value="scheduled">Scheduled</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Jadwal Tayang *</label>
+                            <input type="datetime-local" name="scheduled_at" required value="{{ date('Y-m-d\TH:i') }}" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Penanggung Jawab (PIC)</label>
+                            <select name="assigned_to" class="w-full bg-slate-950 border border-slate-800 text-white text-xs rounded-lg px-3 py-2 focus:ring-1 focus:ring-indigo-500">
+                                <option value="">-- Pilih PIC --</option>
+                                @foreach($usersList as $usr)
+                                    <option value="{{ $usr->id }}">{{ $usr->name }} ({{ strtoupper($usr->role) }})</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="pt-3 flex items-center justify-end gap-2">
+                        <button type="button" @click="showContentModal = false" class="px-3.5 py-1.5 bg-slate-800 text-slate-300 text-xs font-semibold rounded-lg border border-slate-700">Batal</button>
+                        <button type="submit" class="px-4 py-1.5 bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold rounded-lg shadow-sm">Simpan Jadwal</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
     </div>
+
+    <script>
+        function dashboardApp() {
+            return {
+                showTransactionModal: false,
+                showOrderModal: false,
+                showContentModal: false,
+                txType: 'inflow'
+            }
+        }
+    </script>
 </x-app-layout>

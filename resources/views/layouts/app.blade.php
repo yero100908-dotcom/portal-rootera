@@ -1,16 +1,16 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-slate-950">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'SmartAttend Pro') }} - Platform Enterprise Absensi & Operasional</title>
+        <title>{{ config('app.name', 'SmartAttend Pro') }} - Enterprise Management System</title>
 
-        <!-- Google Fonts: Plus Jakarta Sans -->
+        <!-- Fonts: Inter -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
         <!-- Tabler Icons CDN -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
@@ -26,69 +26,126 @@
 
         <style>
             body {
-                font-family: 'Plus Jakarta Sans', sans-serif;
+                font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             }
             [x-cloak] { display: none !important; }
+            /* Custom scrollbars for clean Vercel/Linear feel */
+            ::-webkit-scrollbar {
+                width: 6px;
+                height: 6px;
+            }
+            ::-webkit-scrollbar-track {
+                background: #090d16;
+            }
+            ::-webkit-scrollbar-thumb {
+                background: #1e293b;
+                border-radius: 4px;
+            }
+            ::-webkit-scrollbar-thumb:hover {
+                background: #334155;
+            }
         </style>
     </head>
-    <body class="font-sans antialiased bg-slate-950 text-slate-100 min-h-screen selection:bg-indigo-500 selection:text-white">
-        <div class="min-h-screen bg-slate-950 flex flex-col">
+    <body class="h-full font-sans antialiased bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white" x-data="{ sidebarOpen: false }">
+        
+        <div class="min-h-screen flex flex-col md:flex-row">
+            <!-- Sidebar Navigation (Desktop & Mobile Drawer) -->
             @include('layouts.navigation')
 
-            <!-- Page Heading -->
-            @isset($header)
-                <header class="bg-slate-900/80 backdrop-blur border-b border-slate-800/80 py-6 px-4 sm:px-6 lg:px-8 shadow-sm">
-                    <div class="max-w-7xl mx-auto flex items-center justify-between">
-                        {{ $header }}
+            <!-- Main Content Area -->
+            <div class="flex-1 flex flex-col min-w-0 bg-slate-950">
+                <!-- Top Header Bar -->
+                <header class="sticky top-0 z-30 bg-slate-950/80 backdrop-blur border-b border-slate-800/80 px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <!-- Mobile Sidebar Hamburger Toggle -->
+                        <button @click="sidebarOpen = true" class="md:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 border border-slate-800 transition">
+                            <i class="ti ti-menu-2 text-xl"></i>
+                        </button>
+
+                        @isset($header)
+                            <div>{{ $header }}</div>
+                        @else
+                            <h1 class="text-base font-semibold text-white">SmartAttend Pro Enterprise</h1>
+                        @endisset
+                    </div>
+
+                    <!-- Header Quick Actions & User Pill -->
+                    <div class="flex items-center gap-3">
+                        <a href="{{ route('attendance.create') }}" class="hidden sm:inline-flex items-center gap-2 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg transition shadow-sm">
+                            <i class="ti ti-camera text-sm"></i> Presensi Wajah
+                        </a>
+
+                        @php
+                            $roleColors = [
+                                'owner' => 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+                                'admin' => 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
+                                'mentor' => 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+                                'karyawan' => 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+                                'siswa' => 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+                            ];
+                            $userRole = Auth::user()->role ?? 'karyawan';
+                        @endphp
+
+                        <div class="flex items-center gap-2 pl-2 border-l border-slate-800">
+                            <span class="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider rounded-md border {{ $roleColors[$userRole] ?? 'bg-slate-800 text-slate-300 border-slate-700' }}">
+                                {{ $userRole }}
+                            </span>
+                        </div>
                     </div>
                 </header>
-            @endisset
 
-            <!-- Flash Alert Toast -->
-            @if(session('success'))
-                <script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'success',
-                            title: "{{ session('success') }}",
-                            showConfirmButton: false,
-                            timer: 4000,
-                            timerProgressBar: true
+                <!-- Flash Toast Notifications -->
+                @if(session('success'))
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'success',
+                                title: "{{ session('success') }}",
+                                showConfirmButton: false,
+                                timer: 3500,
+                                background: '#0f172a',
+                                color: '#f8fafc',
+                                timerProgressBar: true
+                            });
                         });
-                    });
-                </script>
-            @endif
+                    </script>
+                @endif
 
-            @if(session('error'))
-                <script>
-                    document.addEventListener('DOMContentLoaded', function() {
-                        Swal.fire({
-                            toast: true,
-                            position: 'top-end',
-                            icon: 'error',
-                            title: "{{ session('error') }}",
-                            showConfirmButton: false,
-                            timer: 4000,
-                            timerProgressBar: true
+                @if(session('error'))
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            Swal.fire({
+                                toast: true,
+                                position: 'top-end',
+                                icon: 'error',
+                                title: "{{ session('error') }}",
+                                showConfirmButton: false,
+                                timer: 4000,
+                                background: '#0f172a',
+                                color: '#f8fafc',
+                                timerProgressBar: true
+                            });
                         });
-                    });
-                </script>
-            @endif
+                    </script>
+                @endif
 
-            <!-- Page Content -->
-            <main class="flex-1 max-w-7xl w-full mx-auto py-8 px-4 sm:px-6 lg:px-8">
-                {{ $slot }}
-            </main>
+                <!-- Main Content Body -->
+                <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+                    {{ $slot }}
+                </main>
 
-            <!-- Footer -->
-            <footer class="bg-slate-900 border-t border-slate-800/60 py-6 text-center text-xs text-slate-400">
-                <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-                    <p>&copy; {{ date('Y') }} SmartAttend Pro &bull; Senior Laravel Enterprise Architecture</p>
-                    <p class="text-slate-500">Versi 2.5.0 &bull; Secure RBAC & Face Recognition API</p>
-                </div>
-            </footer>
+                <!-- Footer -->
+                <footer class="border-t border-slate-900 py-4 px-6 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+                    <p>&copy; {{ date('Y') }} SmartAttend Enterprise &bull; Modular Laravel Solution</p>
+                    <div class="flex items-center gap-4 text-slate-400">
+                        <span>v2.5.0</span>
+                        <span>&bull;</span>
+                        <span>Role: {{ strtoupper(Auth::user()->role) }}</span>
+                    </div>
+                </footer>
+            </div>
         </div>
     </body>
 </html>

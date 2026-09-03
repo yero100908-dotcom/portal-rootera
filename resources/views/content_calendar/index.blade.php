@@ -1,36 +1,32 @@
 <x-app-layout>
     <x-slot name="header">
-        <div>
-            <h2 class="font-bold text-2xl text-white leading-tight flex items-center gap-2">
-                <i class="ti ti-calendar-event text-indigo-400"></i> Kalender Konten (Content Planner & Scheduler)
-            </h2>
-            <p class="text-sm text-slate-400 mt-1">Pemetaan jadwal tayang sosial media, status alur kerja produksi, dan penugasan team</p>
-        </div>
-        <div>
-            <button @click="$dispatch('open-content-modal')" class="px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold rounded-xl text-sm shadow-lg shadow-indigo-600/30 transition flex items-center gap-2">
-                <i class="ti ti-plus text-lg"></i> Tambah Jadwal Konten
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
+            <div>
+                <h1 class="text-xl font-bold text-white tracking-tight">Kalender Konten Media Sosial</h1>
+                <p class="text-xs text-slate-400 mt-0.5">Penjadwalan tayang konten, status alur kerja produksi, dan PIC</p>
+            </div>
+            <button @click="$dispatch('open-content-modal')" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg shadow-sm transition flex items-center gap-1.5">
+                <i class="ti ti-plus text-sm"></i> Tambah Jadwal Konten
             </button>
         </div>
     </x-slot>
 
     <div class="space-y-6" x-data="contentCalendarApp()">
         
-        <!-- Legend & Filters Bar -->
-        <div class="bg-slate-900/90 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
-            <!-- Status Legend Badges -->
+        <!-- Legend & Filter Card -->
+        <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <div class="flex flex-wrap items-center gap-2 text-xs">
-                <span class="font-semibold text-slate-400 me-2">Workflow Legend:</span>
-                <span class="px-2.5 py-1 rounded-lg bg-gray-600/30 text-gray-300 border border-gray-500/30 font-semibold">&bull; Ide / Draft</span>
-                <span class="px-2.5 py-1 rounded-lg bg-amber-500/30 text-amber-300 border border-amber-500/30 font-semibold">&bull; Produksi</span>
-                <span class="px-2.5 py-1 rounded-lg bg-blue-500/30 text-blue-300 border border-blue-500/30 font-semibold">&bull; Review</span>
-                <span class="px-2.5 py-1 rounded-lg bg-purple-500/30 text-purple-300 border border-purple-500/30 font-semibold">&bull; Scheduled</span>
-                <span class="px-2.5 py-1 rounded-lg bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 font-semibold">&bull; Published</span>
+                <span class="font-semibold text-slate-400 text-[11px] uppercase me-1">Status Legend:</span>
+                <span class="px-2 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 border border-slate-700 font-medium">Draft</span>
+                <span class="px-2 py-0.5 rounded text-[10px] bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium">Produksi</span>
+                <span class="px-2 py-0.5 rounded text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">Review</span>
+                <span class="px-2 py-0.5 rounded text-[10px] bg-purple-500/10 text-purple-400 border border-purple-500/20 font-medium">Scheduled</span>
+                <span class="px-2 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium">Published</span>
             </div>
 
-            <!-- Platform Filters -->
             <div class="flex items-center gap-2">
-                <label class="text-xs font-semibold text-slate-400">Platform:</label>
-                <select id="platformFilter" class="bg-slate-950 border border-slate-700 text-white text-xs rounded-xl px-3 py-2">
+                <label class="text-[11px] font-semibold text-slate-400 uppercase">Platform:</label>
+                <select id="platformFilter" class="bg-slate-950 border border-slate-800 text-white text-xs rounded-lg px-2.5 py-1.5 focus:ring-1 focus:ring-indigo-500">
                     <option value="">Semua Platform</option>
                     @foreach($platforms as $p)
                         <option value="{{ $p }}">{{ $p }}</option>
@@ -39,36 +35,36 @@
             </div>
         </div>
 
-        <!-- FullCalendar Container Card -->
-        <div class="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl">
-            <div id="calendar" class="fc-dark-theme min-h-[650px]"></div>
+        <!-- FullCalendar Display -->
+        <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-4 sm:p-6 shadow-sm">
+            <div id="calendar" class="fc-dark-theme min-h-[600px]"></div>
         </div>
 
         <!-- Content Event Modal -->
-        <div x-show="showModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur flex items-center justify-center p-4" x-cloak>
-            <div class="bg-slate-900 border border-slate-800 w-full max-w-xl rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
-                <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-                    <h3 class="text-lg font-bold text-white flex items-center gap-2">
+        <div x-show="showModal" class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4" x-cloak>
+            <div @click.away="showModal = false" class="bg-slate-900 border border-slate-800 w-full max-w-lg rounded-xl p-6 shadow-2xl space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                    <h3 class="text-sm font-bold text-white flex items-center gap-2">
                         <i class="ti ti-pencil text-indigo-400"></i> <span x-text="editMode ? 'Edit Jadwal Konten' : 'Tambah Konten Baru'"></span>
                     </h3>
-                    <button @click="showModal = false" class="text-slate-400 hover:text-white"><i class="ti ti-x text-xl"></i></button>
+                    <button @click="showModal = false" class="text-slate-400 hover:text-white"><i class="ti ti-x text-lg"></i></button>
                 </div>
 
-                <form @submit.prevent="saveContent" class="space-y-4">
+                <form @submit.prevent="saveContent" class="space-y-3">
                     <div>
-                        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Judul Konten / Topik *</label>
-                        <input type="text" x-model="form.title" required placeholder="Contoh: Tips Membangun Personal Branding di 2026" class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                        <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Judul Konten / Topik *</label>
+                        <input type="text" x-model="form.title" required placeholder="Contoh: Showcase Produk Q3" class="w-full bg-slate-950 border border-slate-800 text-white rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Brief Copywriting / Deskripsi</label>
-                        <textarea x-model="form.brief_copywriting" rows="3" placeholder="Garis besar brief, pesan utama, atau hashtag..." class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2 text-sm focus:ring-2 focus:ring-indigo-500"></textarea>
+                        <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Brief Copywriting</label>
+                        <textarea x-model="form.brief_copywriting" rows="2" placeholder="Garis besar brief..." class="w-full bg-slate-950 border border-slate-800 text-white rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500"></textarea>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Platform Target *</label>
-                            <select x-model="form.platform" required class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Platform *</label>
+                            <select x-model="form.platform" required class="w-full bg-slate-950 border border-slate-800 text-white rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500">
                                 @foreach($platforms as $p)
                                     <option value="{{ $p }}">{{ $p }}</option>
                                 @endforeach
@@ -76,8 +72,8 @@
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Status Alur Kerja *</label>
-                            <select x-model="form.status" required class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Status Workflow *</label>
+                            <select x-model="form.status" required class="w-full bg-slate-950 border border-slate-800 text-white rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500">
                                 @foreach($statuses as $val => $label)
                                     <option value="{{ $val }}">{{ $label }}</option>
                                 @endforeach
@@ -85,16 +81,16 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-2 gap-3">
                         <div>
-                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Tanggal & Jam Rencana Tayang *</label>
-                            <input type="datetime-local" x-model="form.scheduled_at" required class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Jadwal Tayang *</label>
+                            <input type="datetime-local" x-model="form.scheduled_at" required class="w-full bg-slate-950 border border-slate-800 text-white rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500">
                         </div>
 
                         <div>
-                            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Penanggung Jawab (Assignee)</label>
-                            <select x-model="form.assigned_to" class="w-full bg-slate-950 border border-slate-700 text-white rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500">
-                                <option value="">-- Pilih Mentor / Staff --</option>
+                            <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-400 mb-1">PIC (Assignee)</label>
+                            <select x-model="form.assigned_to" class="w-full bg-slate-950 border border-slate-800 text-white rounded-lg px-3 py-2 text-xs focus:ring-1 focus:ring-indigo-500">
+                                <option value="">-- Pilih PIC --</option>
                                 @foreach($users as $usr)
                                     <option value="{{ $usr->id }}">{{ $usr->name }} ({{ strtoupper($usr->role) }})</option>
                                 @endforeach
@@ -102,13 +98,13 @@
                         </div>
                     </div>
 
-                    <div class="pt-4 flex items-center justify-between">
-                        <button type="button" x-show="editMode" @click="deleteContent" class="px-4 py-2 bg-rose-500/20 text-rose-300 font-semibold rounded-xl text-sm border border-rose-500/30">
-                            Hapus Konten
+                    <div class="pt-3 flex items-center justify-between">
+                        <button type="button" x-show="editMode" @click="deleteContent" class="px-3 py-1.5 bg-rose-500/10 text-rose-400 text-xs font-semibold rounded-lg border border-rose-500/20">
+                            Hapus
                         </button>
-                        <div class="flex items-center gap-3 ms-auto">
-                            <button type="button" @click="showModal = false" class="px-4 py-2 bg-slate-800 text-slate-300 font-semibold rounded-xl text-sm border border-slate-700">Batal</button>
-                            <button type="submit" class="px-6 py-2 bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold rounded-xl text-sm shadow">Simpan Jadwal</button>
+                        <div class="flex items-center gap-2 ms-auto">
+                            <button type="button" @click="showModal = false" class="px-3.5 py-1.5 bg-slate-800 text-slate-300 text-xs font-semibold rounded-lg border border-slate-700">Batal</button>
+                            <button type="submit" class="px-4 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow-sm">Simpan</button>
                         </div>
                     </div>
                 </form>
@@ -117,15 +113,15 @@
 
     </div>
 
-    <!-- Custom FullCalendar CSS overrides -->
+    <!-- Clean FullCalendar styling -->
     <style>
-        .fc { --fc-border-color: rgba(51, 65, 85, 0.5); }
-        .fc .fc-toolbar-title { color: #f8fafc; font-size: 1.25rem; font-weight: 700; }
-        .fc .fc-button-primary { background-color: #1e293b; border-color: #334155; color: #f1f5f9; }
-        .fc .fc-button-primary:hover { background-color: #334155; }
+        .fc { --fc-border-color: rgba(51, 65, 85, 0.4); }
+        .fc .fc-toolbar-title { color: #f8fafc; font-size: 1.1rem; font-weight: 700; }
+        .fc .fc-button-primary { background-color: #0f172a; border-color: #1e293b; color: #cbd5e1; font-size: 0.75rem; font-weight: 600; padding: 4px 10px; }
+        .fc .fc-button-primary:hover { background-color: #1e293b; color: #fff; }
         .fc-theme-standard td, .fc-theme-standard th { border-color: rgba(51, 65, 85, 0.4); }
-        .fc-daygrid-day-number { color: #94a3b8; font-weight: 600; font-size: 0.85rem; }
-        .fc-event { cursor: pointer; border-radius: 8px; font-weight: 600; padding: 2px 6px; font-size: 0.8rem; }
+        .fc-daygrid-day-number { color: #94a3b8; font-weight: 600; font-size: 0.8rem; }
+        .fc-event { cursor: pointer; border-radius: 6px; font-weight: 600; padding: 2px 6px; font-size: 0.75rem; }
     </style>
 
     <script>
@@ -227,11 +223,9 @@
                         if (res.ok) {
                             this.showModal = false;
                             this.calendar.refetchEvents();
-                            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Jadwal konten berhasil disimpan!', showConfirmButton: false, timer: 3000 });
+                            Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Jadwal konten disimpan', showConfirmButton: false, timer: 2500, background: '#0f172a', color: '#f8fafc' });
                         }
-                    } catch (e) {
-                        console.error('Save Content Error:', e);
-                    }
+                    } catch (e) {}
                 },
 
                 async updateEventDate(event) {
@@ -247,12 +241,12 @@
                                 scheduled_at: event.start.toISOString().slice(0, 16)
                             })
                         });
-                        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Jadwal tayang diperbarui!', showConfirmButton: false, timer: 2000 });
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Jadwal diperbarui', showConfirmButton: false, timer: 2000, background: '#0f172a', color: '#f8fafc' });
                     } catch(e) {}
                 },
 
                 async deleteContent() {
-                    if (!confirm('Yakin ingin menghapus jadwal konten ini?')) return;
+                    if (!confirm('Hapus jadwal konten ini?')) return;
                     try {
                         await fetch(`/content/${this.form.id}`, {
                             method: 'DELETE',
@@ -263,7 +257,7 @@
                         });
                         this.showModal = false;
                         this.calendar.refetchEvents();
-                        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Konten berhasil dihapus.', showConfirmButton: false, timer: 3000 });
+                        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Konten dihapus', showConfirmButton: false, timer: 2500, background: '#0f172a', color: '#f8fafc' });
                     } catch (e) {}
                 }
             }
