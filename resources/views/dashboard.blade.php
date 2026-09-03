@@ -271,14 +271,19 @@
                         @endphp
 
                         @forelse($displayAttendance->take(5) as $att)
+                            @php
+                                $photoUrl = null;
+                                if ($att->foto_bukti) {
+                                    $photoUrl = str_starts_with($att->foto_bukti, 'http')
+                                        ? $att->foto_bukti
+                                        : (str_starts_with($att->foto_bukti, 'storage/') 
+                                            ? asset($att->foto_bukti) 
+                                            : asset('storage/' . $att->foto_bukti));
+                                }
+                                $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($att->user->name ?? 'User') . '&background=1e293b&color=cbd5e1';
+                            @endphp
                             <div class="flex items-center gap-3 p-2.5 bg-slate-950/80 border border-slate-800/80 rounded-lg">
-                                @if($att->foto_bukti)
-                                    <img src="{{ asset($att->foto_bukti) }}" alt="Snapshot" class="w-10 h-10 rounded-lg object-cover border border-slate-700">
-                                @else
-                                    <div class="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400 border border-slate-700">
-                                        <i class="ti ti-user text-lg"></i>
-                                    </div>
-                                @endif
+                                <img src="{{ $photoUrl ?? $avatarUrl }}" alt="Snapshot" class="w-10 h-10 rounded-lg object-cover border border-slate-700 shadow-sm" onError="this.onerror=null; this.src='{{ $avatarUrl }}';">
                                 <div class="flex-1 min-w-0">
                                     <h5 class="text-xs font-bold text-white truncate">{{ $att->user->name ?? 'User' }}</h5>
                                     <p class="text-[11px] text-slate-400 mt-0.5">

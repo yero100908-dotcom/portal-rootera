@@ -38,26 +38,52 @@ class ContentCalendarController extends Controller
 
         $items = $query->get();
 
-        $colorMap = [
-            'draft' => '#6b7280',     // Gray
-            'production' => '#f59e0b',// Amber
-            'review' => '#3b82f6',    // Blue
-            'scheduled' => '#8b5cf6', // Purple
-            'published' => '#10b981', // Green
+        $statusColors = [
+            'draft' => '#64748b',      // Slate
+            'production' => '#f59e0b', // Amber
+            'review' => '#3b82f6',     // Blue
+            'scheduled' => '#a855f7',  // Purple
+            'published' => '#10b981',  // Emerald
         ];
 
-        $events = $items->map(function ($item) use ($colorMap) {
+        $platformColors = [
+            'Instagram' => '#c13584',
+            'TikTok' => '#00f2fe',
+            'YouTube' => '#ef4444',
+            'Facebook' => '#1877f2',
+            'LinkedIn' => '#0a66c2',
+            'Twitter/X' => '#38bdf8',
+        ];
+
+        $platformIcons = [
+            'Instagram' => 'ti-brand-instagram',
+            'TikTok' => 'ti-brand-tiktok',
+            'YouTube' => 'ti-brand-youtube',
+            'Facebook' => 'ti-brand-facebook',
+            'LinkedIn' => 'ti-brand-linkedin',
+            'Twitter/X' => 'ti-brand-x',
+        ];
+
+        $events = $items->map(function ($item) use ($statusColors, $platformColors, $platformIcons) {
+            $statusColor = $statusColors[$item->status] ?? '#3b82f6';
+            $platformColor = $platformColors[$item->platform] ?? '#6366f1';
+            $icon = $platformIcons[$item->platform] ?? 'ti-brand-line';
+
             return [
                 'id' => $item->id,
-                'title' => "[{$item->platform}] {$item->title}",
+                'title' => $item->title,
                 'start' => $item->scheduled_at->toIso8601String(),
-                'backgroundColor' => $colorMap[$item->status] ?? '#3b82f6',
-                'borderColor' => $colorMap[$item->status] ?? '#3b82f6',
+                'backgroundColor' => $statusColor,
+                'borderColor' => $statusColor,
+                'textColor' => '#ffffff',
                 'extendedProps' => [
                     'title_raw' => $item->title,
                     'brief' => $item->brief_copywriting,
                     'platform' => $item->platform,
+                    'platform_color' => $platformColor,
+                    'platform_icon' => $icon,
                     'status' => $item->status,
+                    'status_color' => $statusColor,
                     'assigned_to' => $item->assigned_to,
                     'assignee_name' => $item->assignee->name ?? 'Belum Ditentukan',
                     'scheduled_formatted' => $item->scheduled_at->format('d M Y, H:i'),

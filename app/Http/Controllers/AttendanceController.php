@@ -6,6 +6,7 @@ use App\Models\Attendance;
 use App\Models\User;
 use App\Services\AuditLoggerService;
 use App\Services\FaceRecognitionService;
+use App\Services\GeofencingService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -70,12 +71,70 @@ class AttendanceController extends Controller
     public function create()
     {
         $users = User::where('is_active', true)->select('id', 'name', 'email', 'role', 'face_descriptor')->get();
+        $officeLat = config('attendance.office_latitude', -6.200000);
+        $officeLng = config('attendance.office_longitude', 106.816666);
+        $maxRadius = config('attendance.max_radius_meters', 100);
 
-        return view('attendance.create', compact('users'));
+        return view('attendance.create', compact('users', 'officeLat', 'officeLng', 'maxRadius'));
     }
 
     /**
-     * Process Real-Time Face Attendance Submission
+     * Update Office Geofencing Coordinates
+     */
+    public function updateOfficeLocation(Request $request)
+    {
+        $currentUser = Auth::user();
+        if (! $currentUser->isOwner() && ! $currentUser->isAdmin()) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        }
+
+        $request->validate([
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'max_radius_meters' => 'nullable|numeric|min:10',
+        ]);
+
+        $envFile = base_path('.env');
+        if (file_exists($envFile)) {
+            $content = file_get_contents($envFile);
+            $lat = number_format((float)$request->latitude, 6, '.', '');
+            $lng = number_format((float)$request->longitude, 6, '.', '');
+            $radius = (int)($request->max_radius_meters ?? 100);
+
+            if (str_contains($content, 'OFFICE_LATITUDE=')) {
+                $content = preg_replace('/^OFFICE_LATITUDE=.*/m', "OFFICE_LATITUDE={$lat}", $content);
+            } else {
+                $content .= "\nOFFICE_LATITUDE={$lat}";
+            }
+
+            if (str_contains($content, 'OFFICE_LONGITUDE=')) {
+                $content = preg_replace('/^OFFICE_LONGITUDE=.*/m', "OFFICE_LONGITUDE={$lng}", $content);
+            } else {
+                $content .= "\nOFFICE_LONGITUDE={$lng}";
+            }
+
+            if (str_contains($content, 'OFFICE_MAX_RADIUS_METERS=')) {
+                $content = preg_replace('/^OFFICE_MAX_RADIUS_METERS=.*/m', "OFFICE_MAX_RADIUS_METERS={$radius}", $content);
+            } else {
+                $content .= "\nOFFICE_MAX_RADIUS_METERS={$radius}";
+            }
+
+            file_put_contents($envFile, $content);
+        }
+
+        AuditLoggerService::log('Update Titik Kantor', "Koordinat kantor diperbarui ke {$request->latitude}, {$request->longitude} [Radius: {$request->max_radius_meters}m]");
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Titik acuan lokasi kantor berhasil diperbarui ke koordinat Anda saat ini!',
+            'office_lat' => (float)$request->latitude,
+            'office_lng' => (float)$request->longitude,
+            'max_radius' => (int)($request->max_radius_meters ?? 100)
+        ]);
+    }
+
+    /**
+     * Process Real-Time Face Attendance Submission with Geofencing Validation & Base64 Image Decoding
      */
     public function store(Request $request)
     {
@@ -84,6 +143,9 @@ class AttendanceController extends Controller
             'image' => 'required|string', // Base64 image snapshot
             'face_descriptor' => 'nullable|string', // Optional array descriptor from frontend
             'user_id' => 'nullable|exists:users,id',
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'bypass_geofence' => 'nullable|boolean',
         ]);
 
         $currentUser = Auth::user();
@@ -102,12 +164,31 @@ class AttendanceController extends Controller
             }
         }
 
-        // Process Base64 Snapshot Image
+        // Backend Geofencing Anti-Cheat Validation
+        $geoResult = GeofencingService::isWithinOfficeRadius((float)$request->latitude, (float)$request->longitude);
+        $isBypassed = $request->boolean('bypass_geofence') && ($currentUser->isOwner() || $currentUser->isAdmin());
+
+        if (!$geoResult['is_allowed'] && !$isBypassed) {
+            return response()->json([
+                'success' => false,
+                'message' => "Presensi gagal: Anda berada di luar radius kantor ({$geoResult['distance_meters']}m dari titik kantor, batas maks: {$geoResult['max_radius_meters']}m)."
+            ], 422);
+        }
+
+        // Process Base64 Snapshot Image Safely
         $imageData = $request->image;
         if (str_contains($imageData, ',')) {
             $imageData = explode(',', $imageData)[1];
         }
         $decodedImage = base64_decode($imageData);
+
+        if ($decodedImage === false) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Format gambar snapshot tidak valid.'
+            ], 422);
+        }
+
         $fileName = 'attendance/' . Str::slug($targetUser->name) . '_' . time() . '_' . Str::random(6) . '.jpg';
         Storage::disk('public')->put($fileName, $decodedImage);
 
@@ -127,19 +208,22 @@ class AttendanceController extends Controller
             'tipe' => $request->tipe,
             'status' => $status,
             'catatan' => $request->catatan ?? null,
-            'foto_bukti' => 'storage/' . $fileName,
+            'foto_bukti' => $fileName,
+            'latitude' => $request->latitude,
+            'longitude' => $request->longitude,
+            'distance' => $geoResult['distance_meters'],
             'is_verified' => true,
         ]);
 
         AuditLoggerService::log(
             'Presensi ' . ucfirst($request->tipe),
-            "Presensi {$request->tipe} ({$status}) berhasil untuk {$targetUser->name}",
+            "Presensi {$request->tipe} ({$status}) berhasil untuk {$targetUser->name} [Jarak: {$geoResult['distance_meters']}m]",
             $targetUser->id
         );
 
         return response()->json([
             'success' => true,
-            'message' => "Presensi {$request->tipe} berhasil dicatat! Status: " . ($status === 'tepat_waktu' ? 'Tepat Waktu' : 'Terlambat'),
+            'message' => "Presensi {$request->tipe} berhasil dicatat! Status: " . ($status === 'tepat_waktu' ? 'Tepat Waktu' : 'Terlambat') . " (Jarak: {$geoResult['distance_meters']}m)",
             'user' => [
                 'name' => $targetUser->name,
                 'role' => strtoupper($targetUser->role),
@@ -193,7 +277,7 @@ class AttendanceController extends Controller
 
         $callback = function () use ($attendances) {
             $file = fopen('php://output', 'w');
-            fputcsv($file, ['ID', 'Nama User', 'Role', 'Waktu Presensi', 'Tipe', 'Status', 'Verifikasi']);
+            fputcsv($file, ['ID', 'Nama User', 'Role', 'Waktu Presensi', 'Tipe', 'Status', 'Jarak (m)', 'Latitude', 'Longitude', 'Verifikasi']);
 
             foreach ($attendances as $row) {
                 fputcsv($file, [
@@ -203,6 +287,9 @@ class AttendanceController extends Controller
                     $row->waktu_presensi->format('Y-m-d H:i:s'),
                     strtoupper($row->tipe),
                     strtoupper($row->status),
+                    $row->distance ?? '-',
+                    $row->latitude ?? '-',
+                    $row->longitude ?? '-',
                     $row->is_verified ? 'Ya' : 'Belum',
                 ]);
             }

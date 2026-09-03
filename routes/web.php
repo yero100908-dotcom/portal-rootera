@@ -34,6 +34,7 @@ Route::middleware(['auth'])->group(function () {
         // Admin & Owner only
         Route::middleware(['role:owner,admin'])->group(function () {
             Route::post('/{attendance}/verify', [AttendanceController::class, 'verify'])->name('verify');
+            Route::post('/update-office-location', [AttendanceController::class, 'updateOfficeLocation'])->name('update-office-location');
         });
     });
 

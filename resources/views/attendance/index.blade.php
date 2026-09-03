@@ -3,7 +3,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
             <div>
                 <h1 class="text-xl font-bold text-white tracking-tight">Rekap Absensi & Log Presensi</h1>
-                <p class="text-xs text-slate-400 mt-0.5">Histori kehadiran real-time lengkap dengan bukti foto & verifikasi</p>
+                <p class="text-xs text-slate-400 mt-0.5">Histori kehadiran real-time lengkap dengan bukti foto, koordinat GPS & verifikasi geofencing</p>
             </div>
             <div class="flex items-center gap-2">
                 <a href="{{ route('attendance.export', request()->all()) }}" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs rounded-lg shadow-sm transition flex items-center gap-1.5">
@@ -71,6 +71,7 @@
                             <th class="px-4 py-3">Waktu Presensi</th>
                             <th class="px-4 py-3">Tipe</th>
                             <th class="px-4 py-3">Status</th>
+                            <th class="px-4 py-3">Lokasi GPS (Geofence)</th>
                             <th class="px-4 py-3">Verifikasi</th>
                             @if(Auth::user()->isOwner() || Auth::user()->isAdmin())
                                 <th class="px-4 py-3 text-right">Aksi</th>
@@ -85,13 +86,20 @@
                                     <div class="text-[11px] text-slate-400 font-mono mt-0.5">{{ strtoupper($row->user->role ?? '-') }}</div>
                                 </td>
                                 <td class="px-4 py-3">
-                                    @if($row->foto_bukti)
-                                        <a href="{{ asset($row->foto_bukti) }}" target="_blank" class="inline-block">
-                                            <img src="{{ asset($row->foto_bukti) }}" alt="Snapshot" class="w-10 h-10 rounded-lg object-cover border border-slate-700 hover:scale-105 transition shadow-sm">
-                                        </a>
-                                    @else
-                                        <span class="text-[11px] text-slate-500 italic">-</span>
-                                    @endif
+                                    @php
+                                        $photoUrl = null;
+                                        if ($row->foto_bukti) {
+                                            $photoUrl = str_starts_with($row->foto_bukti, 'http')
+                                                ? $row->foto_bukti
+                                                : (str_starts_with($row->foto_bukti, 'storage/') 
+                                                    ? asset($row->foto_bukti) 
+                                                    : asset('storage/' . $row->foto_bukti));
+                                        }
+                                        $avatarUrl = 'https://ui-avatars.com/api/?name=' . urlencode($row->user->name ?? 'User') . '&background=1e293b&color=cbd5e1';
+                                    @endphp
+                                    <a href="{{ $photoUrl ?? $avatarUrl }}" target="_blank" class="inline-block">
+                                        <img src="{{ $photoUrl ?? $avatarUrl }}" alt="Snapshot" class="w-10 h-10 rounded-lg object-cover border border-slate-700 hover:scale-105 transition shadow-sm" onError="this.onerror=null; this.src='{{ $avatarUrl }}';">
+                                    </a>
                                 </td>
                                 <td class="px-4 py-3">
                                     <div class="font-medium text-slate-200">{{ $row->waktu_presensi->format('d M Y') }}</div>
@@ -111,6 +119,16 @@
                                         @else bg-amber-500/10 text-amber-400 border-amber-500/20 @endif">
                                         {{ str_replace('_', ' ', $row->status) }}
                                     </span>
+                                </td>
+                                <td class="px-4 py-3">
+                                    @if($row->distance !== null)
+                                        <span class="text-xs font-semibold text-emerald-400 flex items-center gap-1">
+                                            <i class="ti ti-map-pin"></i> {{ $row->distance }}m
+                                        </span>
+                                        <span class="text-[10px] text-slate-500 font-mono block">{{ number_format($row->latitude, 4) }}, {{ number_format($row->longitude, 4) }}</span>
+                                    @else
+                                        <span class="text-[11px] text-slate-500 italic">Manual / Legacy</span>
+                                    @endif
                                 </td>
                                 <td class="px-4 py-3">
                                     @if($row->is_verified)
@@ -140,7 +158,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-8 text-slate-500">
+                                <td colspan="8" class="text-center py-8 text-slate-500">
                                     Tidak ada data presensi yang ditemukan.
                                 </td>
                             </tr>

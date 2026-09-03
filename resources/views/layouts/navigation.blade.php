@@ -136,16 +136,26 @@
                     {{ strtoupper(substr(Auth::user()->name, 0, 2)) }}
                 </div>
                 <div class="min-w-0">
-                    <p class="text-xs font-semibold text-white truncate leading-tight">{{ Auth::user()->name }}</p>
-                    <p class="text-[10px] text-slate-400 truncate leading-tight">{{ Auth::user()->email }}</p>
+                    <p class="text-xs font-semibold text-white truncate leading-tight flex items-center gap-1.5">
+                        <span class="truncate">{{ Auth::user()->name }}</span>
+                        <span class="px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wider rounded border shrink-0
+                            @if(Auth::user()->isOwner()) bg-amber-500/20 text-amber-400 border-amber-500/30
+                            @elseif(Auth::user()->isAdmin()) bg-emerald-500/20 text-emerald-400 border-emerald-500/30
+                            @elseif(Auth::user()->isMentor()) bg-purple-500/20 text-purple-400 border-purple-500/30
+                            @else bg-blue-500/20 text-blue-400 border-blue-500/30 @endif">
+                            {{ strtoupper(Auth::user()->role) }}
+                        </span>
+                    </p>
+                    <p class="text-[10px] text-slate-400 truncate leading-tight mt-0.5">{{ Auth::user()->email }}</p>
                 </div>
             </div>
 
             <!-- Logout Form -->
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
-                <button type="submit" title="Logout" class="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-md transition">
-                    <i class="ti ti-power text-base"></i>
+                <button type="submit" title="Logout Sesi" class="px-2.5 py-1.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-md text-xs font-semibold flex items-center gap-1 transition">
+                    <i class="ti ti-power text-xs"></i>
+                    <span>Keluar</span>
                 </button>
             </form>
         </div>

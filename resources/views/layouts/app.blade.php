@@ -90,6 +90,15 @@
                             <span class="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider rounded-md border {{ $roleColors[$userRole] ?? 'bg-slate-800 text-slate-300 border-slate-700' }}">
                                 {{ $userRole }}
                             </span>
+
+                            <!-- Explicit Logout / Ganti Akun Button -->
+                            <form method="POST" action="{{ route('logout') }}" class="inline">
+                                @csrf
+                                <button type="submit" title="Logout dari Sesi Ini" class="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-md text-xs font-semibold transition">
+                                    <i class="ti ti-logout text-sm"></i>
+                                    <span class="hidden sm:inline">Logout</span>
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </header>

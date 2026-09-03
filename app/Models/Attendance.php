@@ -17,6 +17,9 @@ class Attendance extends Model
         'status',
         'catatan',
         'foto_bukti',
+        'latitude',
+        'longitude',
+        'distance',
         'is_verified',
         'verified_by',
     ];
@@ -26,6 +29,9 @@ class Attendance extends Model
         return [
             'waktu_presensi' => 'datetime',
             'is_verified' => 'boolean',
+            'latitude' => 'float',
+            'longitude' => 'float',
+            'distance' => 'float',
         ];
     }
 
