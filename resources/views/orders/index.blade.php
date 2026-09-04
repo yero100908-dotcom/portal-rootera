@@ -3,11 +3,16 @@
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
             <div>
                 <h1 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Order Book & Pesanan Klien</h1>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manajemen order transaksi, rincian item, dan status pelunasan</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manajemen order transaksi, rincian item, komisi sales, dan status pelunasan</p>
             </div>
-            <a href="{{ route('orders.create') }}" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs rounded-lg shadow-sm transition flex items-center gap-1.5">
-                <i class="ti ti-plus text-sm"></i> Input Order Baru
-            </a>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('orders.recap') }}" class="px-3.5 py-1.5 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 font-semibold text-xs rounded-lg border border-indigo-500/20 transition flex items-center gap-1.5">
+                    <i class="ti ti-file-analytics text-base"></i> Rekap Bulanan & Komisi
+                </a>
+                <a href="{{ route('orders.create') }}" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-lg shadow-sm transition flex items-center gap-1.5">
+                    <i class="ti ti-plus text-base"></i> Input Order Baru
+                </a>
+            </div>
         </div>
     </x-slot>
 
@@ -40,9 +45,10 @@
                     <thead class="bg-slate-100 dark:bg-slate-950 text-[11px] uppercase font-semibold text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-800">
                         <tr>
                             <th class="px-4 py-3">No Order</th>
-                            <th class="px-4 py-3">Klien & Kontak</th>
+                            <th class="px-4 py-3">Klien & Sumber</th>
                             <th class="px-4 py-3">Rincian Order</th>
                             <th class="px-4 py-3">Total Nominal</th>
+                            <th class="px-4 py-3">Komisi</th>
                             <th class="px-4 py-3">Tgl Transaksi</th>
                             <th class="px-4 py-3">Status</th>
                             <th class="px-4 py-3 text-right">Aksi</th>
@@ -54,10 +60,19 @@
                                 <td class="px-4 py-3 font-mono font-semibold text-indigo-600 dark:text-indigo-400">{{ $ord->order_number }}</td>
                                 <td class="px-4 py-3">
                                     <div class="font-bold text-slate-900 dark:text-white">{{ $ord->client_name }}</div>
-                                    <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5"><i class="ti ti-phone"></i> {{ $ord->client_phone ?? '-' }}</div>
+                                    <div class="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 flex items-center gap-1.5">
+                                        <span><i class="ti ti-phone"></i> {{ $ord->client_phone ?? '-' }}</span>
+                                        @if($ord->lead_source)
+                                            <span>&bull;</span>
+                                            <span class="font-medium text-indigo-600 dark:text-indigo-400">{{ $ord->lead_source }}</span>
+                                        @endif
+                                    </div>
                                 </td>
                                 <td class="px-4 py-3 text-slate-600 dark:text-slate-300 max-w-xs truncate">{{ $ord->details }}</td>
                                 <td class="px-4 py-3 font-bold text-slate-900 dark:text-white">Rp {{ number_format($ord->total_amount, 0, ',', '.') }}</td>
+                                <td class="px-4 py-3 font-semibold text-indigo-600 dark:text-indigo-400">
+                                    Rp {{ number_format($ord->commission_amount, 0, ',', '.') }}
+                                </td>
                                 <td class="px-4 py-3 text-slate-500 dark:text-slate-400">{{ $ord->transaction_date->format('d M Y') }}</td>
                                 <td class="px-4 py-3">
                                     <span class="px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider rounded border
@@ -83,7 +98,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="7" class="text-center py-8 text-slate-400 dark:text-slate-500">
+                                <td colspan="8" class="text-center py-8 text-slate-400 dark:text-slate-500">
                                     Belum ada data order terdaftar.
                                 </td>
                             </tr>

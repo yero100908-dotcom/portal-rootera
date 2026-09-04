@@ -40,7 +40,9 @@ Route::middleware(['auth'])->group(function () {
 
     // Modul 2: Pembukuan & Manajemen Arus Kas (Owner & Admin)
     Route::middleware(['role:owner,admin'])->group(function () {
-        // Orders
+        // Orders & Order Recap
+        Route::get('orders/recap', [OrderController::class, 'recap'])->name('orders.recap');
+        Route::get('orders/recap/export', [OrderController::class, 'exportRecap'])->name('orders.recap.export');
         Route::resource('orders', OrderController::class);
 
         // Cashflow & Finance

@@ -28,8 +28,9 @@ class UserController extends Controller
         }
 
         $users = $query->latest()->paginate(15)->withQueryString();
+        $roles = ['owner', 'admin', 'mentor', 'karyawan', 'siswa'];
 
-        return view('users.index', compact('users'));
+        return view('users.index', compact('users', 'roles'));
     }
 
     public function create()
