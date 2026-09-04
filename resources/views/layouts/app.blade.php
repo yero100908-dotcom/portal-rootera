@@ -1,11 +1,23 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-slate-950">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'SmartAttend Pro') }} - Enterprise Management System</title>
+
+        <!-- Anti-FOUC Theme Initialization Script -->
+        <script>
+            (function() {
+                const theme = localStorage.getItem('theme');
+                if (theme === 'dark' || (!theme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            })();
+        </script>
 
         <!-- Fonts: Inter -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,72 +41,102 @@
                 font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             }
             [x-cloak] { display: none !important; }
-            /* Custom scrollbars for clean Vercel/Linear feel */
-            ::-webkit-scrollbar {
-                width: 6px;
-                height: 6px;
-            }
-            ::-webkit-scrollbar-track {
+            /* Custom scrollbars for clean dual theme feel */
+            html.dark ::-webkit-scrollbar-track {
                 background: #090d16;
             }
-            ::-webkit-scrollbar-thumb {
+            html.dark ::-webkit-scrollbar-thumb {
                 background: #1e293b;
                 border-radius: 4px;
             }
-            ::-webkit-scrollbar-thumb:hover {
+            html.dark ::-webkit-scrollbar-thumb:hover {
                 background: #334155;
+            }
+            html:not(.dark) ::-webkit-scrollbar-track {
+                background: #f1f5f9;
+            }
+            html:not(.dark) ::-webkit-scrollbar-thumb {
+                background: #cbd5e1;
+                border-radius: 4px;
+            }
+            html:not(.dark) ::-webkit-scrollbar-thumb:hover {
+                background: #94a3b8;
             }
         </style>
     </head>
-    <body class="h-full font-sans antialiased bg-slate-950 text-slate-100 selection:bg-indigo-500 selection:text-white" x-data="{ sidebarOpen: false }">
+    <body class="h-full font-sans antialiased bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-indigo-500 selection:text-white transition-colors duration-200" x-data="{ sidebarOpen: false, isDarkMode: document.documentElement.classList.contains('dark') }">
         
         <div class="min-h-screen flex flex-col md:flex-row">
             <!-- Sidebar Navigation (Desktop & Mobile Drawer) -->
             @include('layouts.navigation')
 
             <!-- Main Content Area -->
-            <div class="flex-1 flex flex-col min-w-0 bg-slate-950">
+            <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
                 <!-- Top Header Bar -->
-                <header class="sticky top-0 z-30 bg-slate-950/80 backdrop-blur border-b border-slate-800/80 px-4 sm:px-6 py-4 flex items-center justify-between gap-4">
+                <header class="sticky top-0 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur border-b border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-4 flex items-center justify-between gap-4 transition-colors duration-200">
                     <div class="flex items-center gap-3">
                         <!-- Mobile Sidebar Hamburger Toggle -->
-                        <button @click="sidebarOpen = true" class="md:hidden p-2 rounded-lg text-slate-400 hover:text-white hover:bg-slate-900 border border-slate-800 transition">
+                        <button @click="sidebarOpen = true" class="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900 border border-slate-200 dark:border-slate-800 transition">
                             <i class="ti ti-menu-2 text-xl"></i>
                         </button>
 
                         @isset($header)
                             <div>{{ $header }}</div>
                         @else
-                            <h1 class="text-base font-semibold text-white">SmartAttend Pro Enterprise</h1>
+                            <h1 class="text-base font-semibold text-slate-900 dark:text-white">SmartAttend Pro Enterprise</h1>
                         @endisset
                     </div>
 
-                    <!-- Header Quick Actions & User Pill -->
+                    <!-- Header Quick Actions, Theme Switcher & User Pill -->
                     <div class="flex items-center gap-3">
                         <a href="{{ route('attendance.create') }}" class="hidden sm:inline-flex items-center gap-2 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg transition shadow-sm">
                             <i class="ti ti-camera text-sm"></i> Presensi Wajah
                         </a>
 
+                        <!-- Theme Switcher Toggle Button -->
+                        <button 
+                            @click="
+                                isDarkMode = !isDarkMode;
+                                if (isDarkMode) {
+                                    document.documentElement.classList.add('dark');
+                                    localStorage.setItem('theme', 'dark');
+                                } else {
+                                    document.documentElement.classList.remove('dark');
+                                    localStorage.setItem('theme', 'light');
+                                }
+                            " 
+                            type="button"
+                            title="Toggle Light / Dark Theme" 
+                            class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 transition duration-200 flex items-center justify-center"
+                        >
+                            <template x-if="isDarkMode">
+                                <i class="ti ti-sun text-amber-400 text-base"></i>
+                            </template>
+                            <template x-if="!isDarkMode">
+                                <i class="ti ti-moon-stars text-indigo-600 text-base"></i>
+                            </template>
+                        </button>
+
                         @php
                             $roleColors = [
-                                'owner' => 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-                                'admin' => 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20',
-                                'mentor' => 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-                                'karyawan' => 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-                                'siswa' => 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+                                'owner' => 'bg-purple-500/10 text-purple-700 dark:text-purple-400 border-purple-500/30',
+                                'admin' => 'bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-500/30',
+                                'mentor' => 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30',
+                                'karyawan' => 'bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30',
+                                'siswa' => 'bg-cyan-500/10 text-cyan-700 dark:text-cyan-400 border-cyan-500/30',
                             ];
                             $userRole = Auth::user()->role ?? 'karyawan';
                         @endphp
 
-                        <div class="flex items-center gap-2 pl-2 border-l border-slate-800">
-                            <span class="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider rounded-md border {{ $roleColors[$userRole] ?? 'bg-slate-800 text-slate-300 border-slate-700' }}">
+                        <div class="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
+                            <span class="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider rounded-md border {{ $roleColors[$userRole] ?? 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700' }}">
                                 {{ $userRole }}
                             </span>
 
                             <!-- Explicit Logout / Ganti Akun Button -->
                             <form method="POST" action="{{ route('logout') }}" class="inline">
                                 @csrf
-                                <button type="submit" title="Logout dari Sesi Ini" class="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-md text-xs font-semibold transition">
+                                <button type="submit" title="Logout dari Sesi Ini" class="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 rounded-md text-xs font-semibold transition">
                                     <i class="ti ti-logout text-sm"></i>
                                     <span class="hidden sm:inline">Logout</span>
                                 </button>
@@ -107,6 +149,7 @@
                 @if(session('success'))
                     <script>
                         document.addEventListener('DOMContentLoaded', function() {
+                            const isDark = document.documentElement.classList.contains('dark');
                             Swal.fire({
                                 toast: true,
                                 position: 'top-end',
@@ -114,8 +157,8 @@
                                 title: "{{ session('success') }}",
                                 showConfirmButton: false,
                                 timer: 3500,
-                                background: '#0f172a',
-                                color: '#f8fafc',
+                                background: isDark ? '#0f172a' : '#ffffff',
+                                color: isDark ? '#f8fafc' : '#0f172a',
                                 timerProgressBar: true
                             });
                         });
@@ -125,6 +168,7 @@
                 @if(session('error'))
                     <script>
                         document.addEventListener('DOMContentLoaded', function() {
+                            const isDark = document.documentElement.classList.contains('dark');
                             Swal.fire({
                                 toast: true,
                                 position: 'top-end',
@@ -132,8 +176,8 @@
                                 title: "{{ session('error') }}",
                                 showConfirmButton: false,
                                 timer: 4000,
-                                background: '#0f172a',
-                                color: '#f8fafc',
+                                background: isDark ? '#0f172a' : '#ffffff',
+                                color: isDark ? '#f8fafc' : '#0f172a',
                                 timerProgressBar: true
                             });
                         });
@@ -146,9 +190,9 @@
                 </main>
 
                 <!-- Footer -->
-                <footer class="border-t border-slate-900 py-4 px-6 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2">
+                <footer class="border-t border-slate-200 dark:border-slate-900 py-4 px-6 text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2 transition-colors duration-200">
                     <p>&copy; {{ date('Y') }} SmartAttend Enterprise &bull; Modular Laravel Solution</p>
-                    <div class="flex items-center gap-4 text-slate-400">
+                    <div class="flex items-center gap-4 text-slate-500 dark:text-slate-400">
                         <span>v2.5.0</span>
                         <span>&bull;</span>
                         <span>Role: {{ strtoupper(Auth::user()->role) }}</span>

@@ -2,10 +2,10 @@
     <x-slot name="header">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
             <div>
-                <h1 class="text-xl font-bold text-white tracking-tight">Presensi Wajah & Validasi Geofencing</h1>
-                <p class="text-xs text-slate-400 mt-0.5">Presensi kamera real-time dengan validasi radius GPS lokasi kantor (Maks 100m)</p>
+                <h1 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Presensi Wajah & Validasi Geofencing</h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Presensi kamera real-time dengan validasi radius GPS lokasi kantor (Maks 100m)</p>
             </div>
-            <a href="{{ route('attendance.index') }}" class="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg border border-slate-700 transition">
+            <a href="{{ route('attendance.index') }}" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 transition">
                 &larr; Rekap Absensi
             </a>
         </div>
@@ -16,17 +16,17 @@
         <!-- GPS Geofencing Status Indicator Bar -->
         <div class="border rounded-xl p-4 sm:p-5 transition duration-300 shadow-sm"
              :class="{
-                 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300': geoStatus === 'allowed',
-                 'bg-rose-500/10 border-rose-500/30 text-rose-300': geoStatus === 'denied' || geoStatus === 'out_of_bounds',
-                 'bg-amber-500/10 border-amber-500/30 text-amber-300': geoStatus === 'loading'
+                 'bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-300': geoStatus === 'allowed',
+                 'bg-rose-500/10 border-rose-500/30 text-rose-700 dark:text-rose-300': geoStatus === 'denied' || geoStatus === 'out_of_bounds',
+                 'bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300': geoStatus === 'loading'
              }">
             <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-xl flex items-center justify-center font-bold text-lg shrink-0 shadow-sm"
                          :class="{
-                             'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30': geoStatus === 'allowed',
-                             'bg-rose-500/20 text-rose-400 border border-rose-500/30': geoStatus === 'denied' || geoStatus === 'out_of_bounds',
-                             'bg-amber-500/20 text-amber-400 border border-amber-500/30': geoStatus === 'loading'
+                             'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30': geoStatus === 'allowed',
+                             'bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30': geoStatus === 'denied' || geoStatus === 'out_of_bounds',
+                             'bg-amber-500/20 text-amber-600 dark:text-amber-400 border border-amber-500/30': geoStatus === 'loading'
                          }">
                         <i class="ti" :class="geoStatus === 'allowed' ? 'ti-map-pin-check' : (geoStatus === 'loading' ? 'ti-loader animate-spin' : 'ti-map-pin-x')"></i>
                     </div>
@@ -39,13 +39,13 @@
                 <div class="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto">
                     @if(Auth::user()->isOwner() || Auth::user()->isAdmin())
                         <button @click="setMyLocationAsOffice()" :disabled="!userLat || settingLocation" 
-                                class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-800 disabled:opacity-50 text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-1.5">
+                                class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:opacity-50 text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-1.5">
                             <i class="ti ti-map-pin text-sm"></i>
                             <span x-text="settingLocation ? 'Menyimpan...' : 'Atur Lokasi Ini Sebagai Kantor'"></span>
                         </button>
                     @endif
 
-                    <button @click="requestGeolocation()" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold rounded-lg border border-slate-700 transition">
+                    <button @click="requestGeolocation()" class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 transition">
                         <i class="ti ti-refresh"></i>
                     </button>
                 </div>
@@ -53,13 +53,13 @@
 
             <!-- Admin Geofence Options Bar -->
             @if(Auth::user()->isOwner() || Auth::user()->isAdmin())
-                <div class="mt-3 pt-3 border-t border-slate-800/60 flex flex-wrap items-center justify-between text-[11px] text-slate-400 gap-2">
+                <div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800/60 flex flex-wrap items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 gap-2">
                     <div class="flex items-center gap-2">
-                        <span class="font-mono text-slate-300">Titik Kantor Saat Ini: <b class="text-white" x-text="officeLat + ', ' + officeLng"></b> (Radius: <b class="text-indigo-400" x-text="maxRadius + 'm'"></b>)</span>
+                        <span class="font-mono text-slate-700 dark:text-slate-300">Titik Kantor Saat Ini: <b class="text-slate-900 dark:text-white" x-text="officeLat + ', ' + officeLng"></b> (Radius: <b class="text-indigo-600 dark:text-indigo-400" x-text="maxRadius + 'm'"></b>)</span>
                     </div>
 
-                    <label class="inline-flex items-center gap-2 cursor-pointer text-slate-300 font-medium">
-                        <input type="checkbox" x-model="bypassGeofence" class="rounded bg-slate-950 border-slate-800 text-indigo-600 focus:ring-indigo-500">
+                    <label class="inline-flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300 font-medium">
+                        <input type="checkbox" x-model="bypassGeofence" class="rounded bg-slate-50 dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-indigo-600 focus:ring-indigo-500">
                         <span>Bypass Geofence (Mode Dev/Override Admin)</span>
                     </label>
                 </div>
@@ -67,20 +67,20 @@
         </div>
 
         <!-- Main Camera Container -->
-        <div class="bg-slate-900/60 border border-slate-800/80 rounded-xl p-5 sm:p-6 shadow-sm relative space-y-5">
+        <div class="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-xl p-5 sm:p-6 shadow-sm relative space-y-5 transition-colors duration-200">
             
-            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200 dark:border-slate-800 pb-4">
                 <div>
                     <div class="flex items-center gap-2">
                         <span class="w-2.5 h-2.5 rounded-full" :class="(geoStatus === 'allowed' || bypassGeofence) ? 'bg-emerald-500 animate-ping' : 'bg-rose-500'"></span>
-                        <h3 class="text-sm font-bold text-white">Live Camera Stream</h3>
+                        <h3 class="text-sm font-bold text-slate-900 dark:text-white">Live Camera Stream</h3>
                     </div>
-                    <p class="text-xs text-slate-400 mt-0.5">Posisikan wajah Anda di tengah kotak pemindai</p>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Posisikan wajah Anda di tengah kotak pemindai</p>
                 </div>
 
                 @if(Auth::user()->isOwner() || Auth::user()->isAdmin())
                     <div class="w-full sm:w-auto">
-                        <select x-model="selectedUserId" class="bg-slate-950 border border-slate-800 text-slate-200 text-xs rounded-lg px-3 py-2 w-full focus:ring-1 focus:ring-indigo-500">
+                        <select x-model="selectedUserId" class="bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs rounded-lg px-3 py-2 w-full focus:ring-1 focus:ring-indigo-500">
                             <option value="">-- Mode Otomatis (Face Recognition) --</option>
                             @foreach($users as $usr)
                                 <option value="{{ $usr->id }}">{{ $usr->name }} ({{ strtoupper($usr->role) }})</option>
@@ -141,20 +141,20 @@
             <!-- Action Controls -->
             <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                 <button @click="submitAttendance('masuk')" :disabled="loading || (geoStatus !== 'allowed' && !bypassGeofence)" 
-                        :class="(geoStatus === 'allowed' || bypassGeofence) ? 'bg-emerald-600 hover:bg-emerald-500 cursor-pointer' : 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-60'"
+                        :class="(geoStatus === 'allowed' || bypassGeofence) ? 'bg-emerald-600 hover:bg-emerald-500 cursor-pointer' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60'"
                         class="w-full sm:w-auto px-6 py-2.5 text-white font-semibold text-xs rounded-lg shadow-sm transition flex items-center justify-center gap-2">
                     <i class="ti ti-login text-base"></i> Check-In (Masuk)
                 </button>
 
                 <button @click="submitAttendance('pulang')" :disabled="loading || (geoStatus !== 'allowed' && !bypassGeofence)"
-                        :class="(geoStatus === 'allowed' || bypassGeofence) ? 'bg-rose-600 hover:bg-rose-500 cursor-pointer' : 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-60'"
+                        :class="(geoStatus === 'allowed' || bypassGeofence) ? 'bg-rose-600 hover:bg-rose-500 cursor-pointer' : 'bg-slate-200 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed opacity-60'"
                         class="w-full sm:w-auto px-6 py-2.5 text-white font-semibold text-xs rounded-lg shadow-sm transition flex items-center justify-center gap-2">
                     <i class="ti ti-logout text-base"></i> Check-Out (Pulang)
                 </button>
             </div>
 
             <div class="text-center pt-2">
-                <p x-text="statusText" class="text-xs text-slate-400 font-medium"></p>
+                <p x-text="statusText" class="text-xs text-slate-500 dark:text-slate-400 font-medium"></p>
             </div>
 
         </div>
@@ -185,6 +185,14 @@
                 geoTitle: 'Mengecek Lokasi GPS...',
                 geoSubtitle: 'Mohon berikan izin akses lokasi perangkatan untuk memverifikasi radius kantor.',
 
+                getSwalColors() {
+                    const isDark = document.documentElement.classList.contains('dark');
+                    return {
+                        background: isDark ? '#0f172a' : '#ffffff',
+                        color: isDark ? '#f8fafc' : '#0f172a'
+                    };
+                },
+
                 init() {
                     this.videoElement = document.getElementById('webcam');
                     this.canvasElement = document.getElementById('snapshotCanvas');
@@ -203,9 +211,8 @@
                     }
                 },
 
-                // Haversine formula calculation in JS
                 calculateHaversineDistance(lat1, lon1, lat2, lon2) {
-                    const R = 6371000; // meters
+                    const R = 6371000;
                     const dLat = (lat2 - lat1) * Math.PI / 180;
                     const dLon = (lon2 - lon1) * Math.PI / 180;
                     const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
@@ -231,7 +238,6 @@
                         (position) => {
                             this.userLat = position.coords.latitude;
                             this.userLng = position.coords.longitude;
-
                             this.evaluateDistance();
                         },
                         (error) => {
@@ -261,8 +267,9 @@
                 },
 
                 async setMyLocationAsOffice() {
+                    const colors = this.getSwalColors();
                     if (!this.userLat || !this.userLng) {
-                        Swal.fire({ icon: 'warning', title: 'GPS Belum Siap', text: 'Tunggu hingga lokasi GPS terdeteksi.', background: '#0f172a', color: '#f8fafc' });
+                        Swal.fire({ icon: 'warning', title: 'GPS Belum Siap', text: 'Tunggu hingga lokasi GPS terdeteksi.', ...colors });
                         return;
                     }
 
@@ -293,15 +300,14 @@
                                 icon: 'success',
                                 title: 'Titik Kantor Diperbarui!',
                                 text: data.message,
-                                background: '#0f172a',
-                                color: '#f8fafc',
-                                timer: 3000
+                                timer: 3000,
+                                ...colors
                             });
                         } else {
-                            Swal.fire({ icon: 'error', title: 'Gagal memperbarui', text: data.message, background: '#0f172a', color: '#f8fafc' });
+                            Swal.fire({ icon: 'error', title: 'Gagal memperbarui', text: data.message, ...colors });
                         }
                     } catch(e) {
-                        Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal menghubungi server.', background: '#0f172a', color: '#f8fafc' });
+                        Swal.fire({ icon: 'error', title: 'Error', text: 'Gagal menghubungi server.', ...colors });
                     } finally {
                         this.settingLocation = false;
                     }
@@ -322,13 +328,13 @@
                 },
 
                 async submitAttendance(type) {
+                    const colors = this.getSwalColors();
                     if (this.geoStatus !== 'allowed' && !this.bypassGeofence) {
                         Swal.fire({
                             icon: 'warning',
                             title: 'Presensi Dikunci',
                             text: 'Anda harus berada di dalam radius 100m dari lokasi kantor untuk melakukan presensi.',
-                            background: '#0f172a',
-                            color: '#f8fafc'
+                            ...colors
                         });
                         return;
                     }
@@ -363,14 +369,13 @@
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Presensi Berhasil!',
-                                html: `<b class="text-slate-100">${resData.user.name}</b> (${resData.user.role})<br><span class="text-xs text-emerald-400 font-medium">${resData.message}</span>`,
+                                html: `<b>${resData.user.name}</b> (${resData.user.role})<br><span class="text-xs text-emerald-500 font-medium">${resData.message}</span>`,
                                 timer: 3500,
-                                background: '#0f172a',
-                                color: '#f8fafc'
+                                ...colors
                             });
                             this.statusText = resData.message;
                         } else {
-                            Swal.fire({ icon: 'error', title: 'Presensi Gagal', text: resData.message, background: '#0f172a', color: '#f8fafc' });
+                            Swal.fire({ icon: 'error', title: 'Presensi Gagal', text: resData.message, ...colors });
                             this.statusText = resData.message || 'Presensi gagal. Silakan coba lagi.';
                         }
                     } catch (err) {
