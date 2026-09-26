@@ -56,6 +56,13 @@
                     <i class="ti ti-file-text text-base"></i>
                     <span>Rekap Presensi</span>
                 </a>
+
+                <!-- Manajemen Tugas / Assignment -->
+                <a href="{{ route('assignments.index') }}" 
+                   class="flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg transition duration-150 {{ request()->routeIs('assignments.*') ? 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white' }}">
+                    <i class="ti ti-notebook text-base"></i>
+                    <span>Manajemen Tugas</span>
+                </a>
             </nav>
         </div>
 

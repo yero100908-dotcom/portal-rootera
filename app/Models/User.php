@@ -79,6 +79,16 @@ class User extends Authenticatable
         return $this->hasMany(ContentCalendar::class, 'assigned_to');
     }
 
+    public function assignments(): HasMany
+    {
+        return $this->hasMany(Assignment::class, 'created_by');
+    }
+
+    public function assignmentSubmissions(): HasMany
+    {
+        return $this->hasMany(AssignmentSubmission::class);
+    }
+
     public function isOwner(): bool
     {
         return $this->role === 'owner' || $this->hasRole('owner');
@@ -112,6 +122,11 @@ class User extends Authenticatable
     public function isKaryawanOrSiswa(): bool
     {
         return in_array($this->role, ['karyawan', 'siswa']) || $this->hasAnyRole(['karyawan', 'siswa']);
+    }
+
+    public function canManageAssignments(): bool
+    {
+        return $this->isOwner() || $this->isAdmin() || $this->isMentor() || $this->hasAnyRole(['owner', 'admin', 'mentor']);
     }
 
     public function canManageOrders(): bool

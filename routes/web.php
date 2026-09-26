@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AssignmentController;
+use App\Http\Controllers\AssignmentSubmissionController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AuditLogController;
 use App\Http\Controllers\ContentCalendarController;
@@ -78,6 +80,22 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{contentCalendar}', [ContentCalendarController::class, 'update'])->name('update');
         Route::delete('/{contentCalendar}', [ContentCalendarController::class, 'destroy'])->name('destroy');
     });
+
+    // Modul 8: Manajemen Tugas / Assignment (Google Classroom-like)
+    // Rute Pembuat & Pengelola Tugas (Owner, Admin, Mentor) - Harap didaftarkan sebelum route wildcard {assignment}
+    Route::middleware(['role:owner,admin,mentor'])->group(function () {
+        Route::get('assignments/create', [AssignmentController::class, 'create'])->name('assignments.create');
+        Route::post('assignments', [AssignmentController::class, 'store'])->name('assignments.store');
+        Route::get('assignments/{assignment}/edit', [AssignmentController::class, 'edit'])->name('assignments.edit');
+        Route::put('assignments/{assignment}', [AssignmentController::class, 'update'])->name('assignments.update');
+        Route::delete('assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('assignments.destroy');
+        Route::post('/submissions/{submission}/grade', [AssignmentSubmissionController::class, 'grade'])->name('submissions.grade');
+    });
+
+    // Rute Pengakses Tugas (Semua pengguna terautentikasi)
+    Route::get('assignments', [AssignmentController::class, 'index'])->name('assignments.index');
+    Route::get('assignments/{assignment}', [AssignmentController::class, 'show'])->name('assignments.show');
+    Route::post('/assignments/{assignment}/submit', [AssignmentSubmissionController::class, 'store'])->name('assignments.submit');
 
 });
 
