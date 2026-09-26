@@ -31,42 +31,47 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/scan', [AttendanceController::class, 'store'])->name('store');
         Route::get('/export', [AttendanceController::class, 'export'])->name('export');
 
-        // Admin & Owner only
-        Route::middleware(['role:owner,admin'])->group(function () {
+        // Admin, Owner & IT Verification
+        Route::middleware(['role:owner,admin,it'])->group(function () {
             Route::post('/{attendance}/verify', [AttendanceController::class, 'verify'])->name('verify');
             Route::post('/update-office-location', [AttendanceController::class, 'updateOfficeLocation'])->name('update-office-location');
         });
     });
 
-    // Modul 2: Pembukuan & Manajemen Arus Kas (Owner & Admin)
-    Route::middleware(['role:owner,admin'])->group(function () {
-        // Orders & Order Recap
+    // Modul 2: Order Book & Rekap Order (Owner, Admin, CS, Mentor)
+    Route::middleware(['role:owner,admin,cs,mentor'])->group(function () {
         Route::get('orders/recap', [OrderController::class, 'recap'])->name('orders.recap');
         Route::get('orders/recap/export', [OrderController::class, 'exportRecap'])->name('orders.recap.export');
         Route::resource('orders', OrderController::class);
+    });
 
-        // Cashflow & Finance
-        Route::prefix('finance')->name('finance.')->group(function () {
-            Route::get('/', [FinanceController::class, 'index'])->name('index');
-            Route::post('/inflow', [FinanceController::class, 'storeInflow'])->name('inflow.store');
-            Route::post('/outflow', [FinanceController::class, 'storeOutflow'])->name('outflow.store');
-            Route::delete('/{cashflow}', [FinanceController::class, 'destroy'])->name('destroy');
-        });
+    // Modul 3: Arus Kas / Finance (Owner & Admin)
+    Route::middleware(['role:owner,admin'])->prefix('finance')->name('finance.')->group(function () {
+        Route::get('/', [FinanceController::class, 'index'])->name('index');
+        Route::post('/inflow', [FinanceController::class, 'storeInflow'])->name('inflow.store');
+        Route::post('/outflow', [FinanceController::class, 'storeOutflow'])->name('outflow.store');
+        Route::delete('/{cashflow}', [FinanceController::class, 'destroy'])->name('destroy');
+    });
 
-        // User Management
+    // Modul 4: User Management & Data Wajah (Owner, Admin, IT)
+    Route::middleware(['role:owner,admin,it'])->group(function () {
         Route::resource('users', UserController::class);
         Route::get('/users/{user}/register-face', [UserController::class, 'registerFaceView'])->name('users.register-face');
         Route::post('/users/{user}/register-face', [UserController::class, 'saveFace'])->name('users.save-face');
     });
 
-    // Laba Rugi khusus Owner
-    Route::middleware(['role:owner'])->group(function () {
-        Route::get('/finance/profit-loss', [FinanceController::class, 'profitLossReport'])->name('finance.profit_loss');
+    // Modul 5: Audit Trail Logs (Owner, IT)
+    Route::middleware(['role:owner,it'])->group(function () {
         Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit_logs.index');
     });
 
-    // Modul 3: Kalender Konten (Owner, Admin, Mentor)
-    Route::middleware(['role:owner,admin,mentor'])->prefix('content')->name('content.')->group(function () {
+    // Modul 6: Laba Rugi khusus Owner
+    Route::middleware(['role:owner'])->group(function () {
+        Route::get('/finance/profit-loss', [FinanceController::class, 'profitLossReport'])->name('finance.profit_loss');
+    });
+
+    // Modul 7: Kalender Konten / Media Planner (Owner, Admin, Mentor, Sosmed)
+    Route::middleware(['role:owner,admin,mentor,sosmed'])->prefix('content')->name('content.')->group(function () {
         Route::get('/', [ContentCalendarController::class, 'index'])->name('index');
         Route::get('/events', [ContentCalendarController::class, 'events'])->name('events');
         Route::post('/', [ContentCalendarController::class, 'store'])->name('store');

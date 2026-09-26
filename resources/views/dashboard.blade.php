@@ -18,16 +18,19 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-2">
-                @if($user->isOwner() || $user->isAdmin())
+                @if($user->canManageFinance())
                     <button @click="showTransactionModal = true" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 transition">
                         <i class="ti ti-plus text-indigo-600 dark:text-indigo-400"></i> Catat Transaksi
                     </button>
+                @endif
+
+                @if($user->canManageOrders())
                     <button @click="showOrderModal = true" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 transition">
                         <i class="ti ti-shopping-cart-plus text-emerald-600 dark:text-emerald-400"></i> Buat Order Baru
                     </button>
                 @endif
 
-                @if($user->isOwner() || $user->isAdmin() || $user->isMentor())
+                @if($user->canManageContent())
                     <button @click="showContentModal = true" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 transition">
                         <i class="ti ti-calendar-plus text-purple-600 dark:text-purple-400"></i> Jadwal Konten
                     </button>
@@ -60,7 +63,7 @@
                 </div>
             </div>
 
-            @if($user->isOwner() || $user->isAdmin())
+            @if($user->canManageFinance())
                 <!-- Metric 2: Total Pemasukan -->
                 <div class="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-xl p-5 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-200">
                     <div class="flex items-center justify-between mb-3">
@@ -157,7 +160,7 @@
             <div class="lg:col-span-2 space-y-6">
 
                 <!-- Content Planner Widget -->
-                @if($user->isOwner() || $user->isAdmin() || $user->isMentor())
+                @if($user->canManageContent())
                     <div class="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-xl p-5 shadow-sm transition-colors duration-200">
                         <div class="flex items-center justify-between mb-4">
                             <div>
@@ -205,7 +208,7 @@
                 @endif
 
                 <!-- Recent Orders Table -->
-                @if($user->isOwner() || $user->isAdmin())
+                @if($user->canManageOrders())
                     <div class="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-xl p-5 shadow-sm transition-colors duration-200">
                         <div class="flex items-center justify-between mb-4">
                             <div>

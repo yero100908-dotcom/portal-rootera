@@ -3,11 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cashflow;
-use App\Models\Order;
 use App\Services\AuditLoggerService;
 use App\Services\FinancialService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class FinanceController extends Controller
@@ -73,7 +73,7 @@ class FinanceController extends Controller
             'created_by' => Auth::id(),
         ]);
 
-        AuditLoggerService::log('Input Uang Masuk', "Catat pemasukan Rp " . number_format($request->amount, 0, ',', '.') . " dari {$request->source_destination}");
+        AuditLoggerService::log('Input Uang Masuk', 'Catat pemasukan Rp '.number_format($request->amount, 0, ',', '.')." dari {$request->source_destination}");
 
         return redirect()->route('finance.index')->with('success', 'Uang masuk berhasil dicatat.');
     }
@@ -92,7 +92,7 @@ class FinanceController extends Controller
         $proofPath = null;
         if ($request->hasFile('proof_file')) {
             $path = $request->file('proof_file')->store('receipts', 'public');
-            $proofPath = 'storage/' . $path;
+            $proofPath = 'storage/'.$path;
         }
 
         $cashflow = Cashflow::create([
@@ -106,7 +106,7 @@ class FinanceController extends Controller
             'created_by' => Auth::id(),
         ]);
 
-        AuditLoggerService::log('Input Uang Keluar', "Catat pengeluaran Rp " . number_format($request->amount, 0, ',', '.') . " untuk {$request->source_destination}");
+        AuditLoggerService::log('Input Uang Keluar', 'Catat pengeluaran Rp '.number_format($request->amount, 0, ',', '.')." untuk {$request->source_destination}");
 
         return redirect()->route('finance.index')->with('success', 'Uang keluar berhasil dicatat.');
     }
@@ -133,17 +133,19 @@ class FinanceController extends Controller
         }
 
         $year = $request->get('year', date('Y'));
+        $driver = DB::connection()->getDriverName();
+        $monthExpr = $driver === 'sqlite' ? "cast(strftime('%m', date) as integer)" : 'MONTH(date)';
 
         $monthlyInflow = Cashflow::where('type', 'inflow')
             ->whereYear('date', $year)
-            ->selectRaw('MONTH(date) as month, SUM(amount) as total')
+            ->selectRaw("{$monthExpr} as month, SUM(amount) as total")
             ->groupBy('month')
             ->pluck('total', 'month')
             ->toArray();
 
         $monthlyOutflow = Cashflow::where('type', 'outflow')
             ->whereYear('date', $year)
-            ->selectRaw('MONTH(date) as month, SUM(amount) as total')
+            ->selectRaw("{$monthExpr} as month, SUM(amount) as total")
             ->groupBy('month')
             ->pluck('total', 'month')
             ->toArray();

@@ -7,7 +7,6 @@ use App\Models\ContentCalendar;
 use App\Models\Order;
 use App\Models\User;
 use App\Services\FinancialService;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -25,7 +24,7 @@ class DashboardController extends Controller
 
         // Financial Data for Owner & Admin
         $financials = null;
-        if ($user->isOwner() || $user->isAdmin()) {
+        if ($user->canManageFinance()) {
             $financials = $this->financialService->getFinancialSummary();
         }
 

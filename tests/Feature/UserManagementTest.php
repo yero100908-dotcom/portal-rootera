@@ -34,6 +34,10 @@ class UserManagementTest extends TestCase
         $response = $this->actingAs($owner)->get(route('users.index', ['role' => 'admin']));
 
         $response->assertStatus(200);
-        $response->assertSee('Ghaitsaa Kahla');
+        $response->assertSee('Mono');
+
+        $csResponse = $this->actingAs($owner)->get(route('users.index', ['role' => 'cs']));
+        $csResponse->assertStatus(200);
+        $csResponse->assertSee('Ghaitsaa Kahla');
     }
 }

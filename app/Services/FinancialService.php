@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Cashflow;
 use App\Models\Order;
-use Carbon\Carbon;
 
 class FinancialService
 {
@@ -28,7 +27,7 @@ class FinancialService
 
         // Calculate total inflow from cashflow records
         $totalInflowCashflow = $cashflows->where('type', 'inflow')->sum('amount');
-        
+
         // Also check if there are paid orders not linked to a cashflow record
         $linkedOrderIds = $cashflows->whereNotNull('order_id')->pluck('order_id')->toArray();
         $unlinkedPaidOrdersSum = Order::whereIn('payment_status', ['lunas', 'dp'])

@@ -28,14 +28,14 @@ class UserController extends Controller
         }
 
         $users = $query->latest()->paginate(15)->withQueryString();
-        $roles = ['owner', 'admin', 'mentor', 'karyawan', 'siswa'];
+        $roles = ['owner', 'admin', 'mentor', 'it', 'sosmed', 'cs', 'karyawan', 'siswa'];
 
         return view('users.index', compact('users', 'roles'));
     }
 
     public function create()
     {
-        $roles = ['owner', 'admin', 'mentor', 'karyawan', 'siswa'];
+        $roles = ['owner', 'admin', 'mentor', 'it', 'sosmed', 'cs', 'karyawan', 'siswa'];
 
         return view('users.create', compact('roles'));
     }
@@ -46,7 +46,7 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|min:8',
-            'role' => 'required|in:owner,admin,mentor,karyawan,siswa',
+            'role' => 'required|in:owner,admin,mentor,it,sosmed,cs,karyawan,siswa',
             'phone' => 'nullable|string|max:50',
             'face_descriptor' => 'nullable|string',
         ]);
@@ -70,7 +70,7 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        $roles = ['owner', 'admin', 'mentor', 'karyawan', 'siswa'];
+        $roles = ['owner', 'admin', 'mentor', 'it', 'sosmed', 'cs', 'karyawan', 'siswa'];
 
         return view('users.edit', compact('user', 'roles'));
     }
@@ -80,7 +80,7 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required|string|max:255',
             'email' => ['required', 'email', Rule::unique('users')->ignore($user->id)],
-            'role' => 'required|in:owner,admin,mentor,karyawan,siswa',
+            'role' => 'required|in:owner,admin,mentor,it,sosmed,cs,karyawan,siswa',
             'phone' => 'nullable|string|max:50',
             'is_active' => 'required|boolean',
             'face_descriptor' => 'nullable|string',

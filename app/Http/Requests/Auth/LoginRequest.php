@@ -48,13 +48,24 @@ class LoginRequest extends FormRequest
         $cleanInput = strtolower($rawInput);
         $password = $this->input('password');
 
-        // Alias mapping for quick login inputs like "owner", "admin", "mentor", "karyawan", "siswa"
+        // Alias mapping for quick login inputs like "owner", "admin", "mentor", "it", "sosmed", "cs", or usernames
         $aliasMap = [
-            'owner' => 'owner@absensi.com',
-            'admin' => 'admin@absensi.com',
-            'mentor' => 'mentor@absensi.com',
-            'karyawan' => 'karyawan@absensi.com',
-            'siswa' => 'siswa@absensi.com',
+            'owner' => 'wibowo@smartattend.com',
+            'admin' => 'mono@smartattend.com',
+            'mentor' => 'rafael@smartattend.com',
+            'it' => 'yero@smartattend.com',
+            'sosmed' => 'prayoga@smartattend.com',
+            'cs' => 'ghaitsaa@smartattend.com',
+            'wibowo' => 'wibowo@smartattend.com',
+            'mono' => 'mono@smartattend.com',
+            'rafael' => 'rafael@smartattend.com',
+            'yero' => 'yero@smartattend.com',
+            'desty' => 'desty@smartattend.com',
+            'prayoga' => 'prayoga@smartattend.com',
+            'maura' => 'maura@smartattend.com',
+            'rafa' => 'rafa@smartattend.com',
+            'ghaitsaa' => 'ghaitsaa@smartattend.com',
+            'karyawan' => 'yero@smartattend.com',
         ];
 
         $targetEmail = $aliasMap[$cleanInput] ?? $rawInput;
@@ -62,11 +73,14 @@ class LoginRequest extends FormRequest
         // 1. Try direct auth with targetEmail
         if (Auth::attempt(['email' => $targetEmail, 'password' => $password], $this->boolean('remember'))) {
             RateLimiter::clear($this->throttleKey());
+
             return;
         }
 
-        // 2. Search user by role or name if direct email lookup fails
+        // 2. Search user by role or name or alternative domain email if direct lookup fails
         $user = User::where('email', $targetEmail)
+            ->orWhere('email', $cleanInput.'@smartattend.com')
+            ->orWhere('email', $cleanInput.'@absensi.com')
             ->orWhere('role', $cleanInput)
             ->orWhere('name', 'LIKE', "%{$rawInput}%")
             ->first();
@@ -74,13 +88,14 @@ class LoginRequest extends FormRequest
         if ($user && Hash::check($password, $user->password)) {
             Auth::login($user, $this->boolean('remember'));
             RateLimiter::clear($this->throttleKey());
+
             return;
         }
 
         RateLimiter::hit($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'email' => 'Kredensial login tidak cocok. Gunakan email (owner@absensi.com, admin@absensi.com, dll) atau username role (owner, admin, mentor, karyawan).',
+            'email' => 'Kredensial login tidak cocok. Gunakan email (wibowo@smartattend.com, mono@smartattend.com, dll) atau username role (owner, admin, mentor, it, sosmed, cs).',
         ]);
     }
 

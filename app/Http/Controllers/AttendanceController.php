@@ -97,9 +97,9 @@ class AttendanceController extends Controller
         $envFile = base_path('.env');
         if (file_exists($envFile)) {
             $content = file_get_contents($envFile);
-            $lat = number_format((float)$request->latitude, 6, '.', '');
-            $lng = number_format((float)$request->longitude, 6, '.', '');
-            $radius = (int)($request->max_radius_meters ?? 100);
+            $lat = number_format((float) $request->latitude, 6, '.', '');
+            $lng = number_format((float) $request->longitude, 6, '.', '');
+            $radius = (int) ($request->max_radius_meters ?? 100);
 
             if (str_contains($content, 'OFFICE_LATITUDE=')) {
                 $content = preg_replace('/^OFFICE_LATITUDE=.*/m', "OFFICE_LATITUDE={$lat}", $content);
@@ -127,9 +127,9 @@ class AttendanceController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Titik acuan lokasi kantor berhasil diperbarui ke koordinat Anda saat ini!',
-            'office_lat' => (float)$request->latitude,
-            'office_lng' => (float)$request->longitude,
-            'max_radius' => (int)($request->max_radius_meters ?? 100)
+            'office_lat' => (float) $request->latitude,
+            'office_lng' => (float) $request->longitude,
+            'max_radius' => (int) ($request->max_radius_meters ?? 100),
         ]);
     }
 
@@ -165,13 +165,13 @@ class AttendanceController extends Controller
         }
 
         // Backend Geofencing Anti-Cheat Validation
-        $geoResult = GeofencingService::isWithinOfficeRadius((float)$request->latitude, (float)$request->longitude);
+        $geoResult = GeofencingService::isWithinOfficeRadius((float) $request->latitude, (float) $request->longitude);
         $isBypassed = $request->boolean('bypass_geofence') && ($currentUser->isOwner() || $currentUser->isAdmin());
 
-        if (!$geoResult['is_allowed'] && !$isBypassed) {
+        if (! $geoResult['is_allowed'] && ! $isBypassed) {
             return response()->json([
                 'success' => false,
-                'message' => "Presensi gagal: Anda berada di luar radius kantor ({$geoResult['distance_meters']}m dari titik kantor, batas maks: {$geoResult['max_radius_meters']}m)."
+                'message' => "Presensi gagal: Anda berada di luar radius kantor ({$geoResult['distance_meters']}m dari titik kantor, batas maks: {$geoResult['max_radius_meters']}m).",
             ], 422);
         }
 
@@ -185,11 +185,11 @@ class AttendanceController extends Controller
         if ($decodedImage === false) {
             return response()->json([
                 'success' => false,
-                'message' => 'Format gambar snapshot tidak valid.'
+                'message' => 'Format gambar snapshot tidak valid.',
             ], 422);
         }
 
-        $fileName = 'attendance/' . Str::slug($targetUser->name) . '_' . time() . '_' . Str::random(6) . '.jpg';
+        $fileName = 'attendance/'.Str::slug($targetUser->name).'_'.time().'_'.Str::random(6).'.jpg';
         Storage::disk('public')->put($fileName, $decodedImage);
 
         // Check time status (Standard check-in time: 08:00 AM)
@@ -216,14 +216,14 @@ class AttendanceController extends Controller
         ]);
 
         AuditLoggerService::log(
-            'Presensi ' . ucfirst($request->tipe),
+            'Presensi '.ucfirst($request->tipe),
             "Presensi {$request->tipe} ({$status}) berhasil untuk {$targetUser->name} [Jarak: {$geoResult['distance_meters']}m]",
             $targetUser->id
         );
 
         return response()->json([
             'success' => true,
-            'message' => "Presensi {$request->tipe} berhasil dicatat! Status: " . ($status === 'tepat_waktu' ? 'Tepat Waktu' : 'Terlambat') . " (Jarak: {$geoResult['distance_meters']}m)",
+            'message' => "Presensi {$request->tipe} berhasil dicatat! Status: ".($status === 'tepat_waktu' ? 'Tepat Waktu' : 'Terlambat')." (Jarak: {$geoResult['distance_meters']}m)",
             'user' => [
                 'name' => $targetUser->name,
                 'role' => strtoupper($targetUser->role),
@@ -268,11 +268,11 @@ class AttendanceController extends Controller
 
         $attendances = $query->get();
 
-        $filename = "rekap_presensi_" . date('Ymd_His') . ".csv";
+        $filename = 'rekap_presensi_'.date('Ymd_His').'.csv';
 
         $headers = [
-            "Content-Type" => "text/csv",
-            "Content-Disposition" => "attachment; filename=\"$filename\"",
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"$filename\"",
         ];
 
         $callback = function () use ($attendances) {

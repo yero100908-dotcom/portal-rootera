@@ -94,9 +94,49 @@ class User extends Authenticatable
         return $this->role === 'mentor' || $this->hasRole('mentor');
     }
 
+    public function isIT(): bool
+    {
+        return $this->role === 'it' || $this->hasRole('it');
+    }
+
+    public function isSosmed(): bool
+    {
+        return $this->role === 'sosmed' || $this->hasRole('sosmed');
+    }
+
+    public function isCS(): bool
+    {
+        return $this->role === 'cs' || $this->hasRole('cs');
+    }
+
     public function isKaryawanOrSiswa(): bool
     {
         return in_array($this->role, ['karyawan', 'siswa']) || $this->hasAnyRole(['karyawan', 'siswa']);
+    }
+
+    public function canManageOrders(): bool
+    {
+        return $this->isOwner() || $this->isAdmin() || $this->isCS() || $this->isMentor();
+    }
+
+    public function canManageContent(): bool
+    {
+        return $this->isOwner() || $this->isAdmin() || $this->isMentor() || $this->isSosmed();
+    }
+
+    public function canManageFinance(): bool
+    {
+        return $this->isOwner() || $this->isAdmin();
+    }
+
+    public function canManageUsers(): bool
+    {
+        return $this->isOwner() || $this->isAdmin() || $this->isIT();
+    }
+
+    public function canViewAuditLogs(): bool
+    {
+        return $this->isOwner() || $this->isIT();
     }
 
     public function hasRegisteredFace(): bool

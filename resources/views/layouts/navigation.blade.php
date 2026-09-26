@@ -59,34 +59,38 @@
             </nav>
         </div>
 
-        <!-- Operations & Finance (Owner & Admin) -->
-        @if(Auth::user()->isOwner() || Auth::user()->isAdmin())
+        <!-- Operations & Finance (Owner, Admin, CS, Mentor) -->
+        @if(Auth::user()->canManageOrders() || Auth::user()->canManageFinance())
             <div>
                 <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Operasional & Kas</p>
                 <nav class="space-y-1">
-                    <a href="{{ route('orders.index') }}" 
-                       class="flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg transition duration-150 {{ request()->routeIs('orders.index') ? 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white' }}">
-                        <i class="ti ti-shopping-cart text-base"></i>
-                        <span>Order Book</span>
-                    </a>
+                    @if(Auth::user()->canManageOrders())
+                        <a href="{{ route('orders.index') }}" 
+                           class="flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg transition duration-150 {{ request()->routeIs('orders.index') ? 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white' }}">
+                            <i class="ti ti-shopping-cart text-base"></i>
+                            <span>Order Book</span>
+                        </a>
 
-                    <a href="{{ route('orders.recap') }}" 
-                       class="flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg transition duration-150 {{ request()->routeIs('orders.recap') ? 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white' }}">
-                        <i class="ti ti-file-analytics text-base"></i>
-                        <span>Rekap Order Bulanan</span>
-                    </a>
+                        <a href="{{ route('orders.recap') }}" 
+                           class="flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg transition duration-150 {{ request()->routeIs('orders.recap') ? 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white' }}">
+                            <i class="ti ti-file-analytics text-base"></i>
+                            <span>Rekap Order Bulanan</span>
+                        </a>
+                    @endif
 
-                    <a href="{{ route('finance.index') }}" 
-                       class="flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg transition duration-150 {{ request()->routeIs('finance.index') ? 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white' }}">
-                        <i class="ti ti-wallet text-base"></i>
-                        <span>Arus Kas (Financial)</span>
-                    </a>
+                    @if(Auth::user()->canManageFinance())
+                        <a href="{{ route('finance.index') }}" 
+                           class="flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg transition duration-150 {{ request()->routeIs('finance.index') ? 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white' }}">
+                            <i class="ti ti-wallet text-base"></i>
+                            <span>Arus Kas (Financial)</span>
+                        </a>
+                    @endif
                 </nav>
             </div>
         @endif
 
-        <!-- Media & Marketing (Owner, Admin, Mentor) -->
-        @if(Auth::user()->isOwner() || Auth::user()->isAdmin() || Auth::user()->isMentor())
+        <!-- Media & Marketing (Owner, Admin, Mentor, Sosmed) -->
+        @if(Auth::user()->canManageContent())
             <div>
                 <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Media Planner</p>
                 <nav class="space-y-1">
@@ -99,28 +103,32 @@
             </div>
         @endif
 
-        <!-- Owner Exclusive Controls -->
-        @if(Auth::user()->isOwner())
+        <!-- Owner & System Controls -->
+        @if(Auth::user()->isOwner() || Auth::user()->canViewAuditLogs())
             <div>
-                <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Owner Controls</p>
+                <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">System Controls</p>
                 <nav class="space-y-1">
-                    <a href="{{ route('finance.profit_loss') }}" 
-                       class="flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg transition duration-150 {{ request()->routeIs('finance.profit_loss') ? 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white' }}">
-                        <i class="ti ti-chart-dots text-base"></i>
-                        <span>Laba Rugi Perusahaan</span>
-                    </a>
+                    @if(Auth::user()->isOwner())
+                        <a href="{{ route('finance.profit_loss') }}" 
+                           class="flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg transition duration-150 {{ request()->routeIs('finance.profit_loss') ? 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white' }}">
+                            <i class="ti ti-chart-dots text-base"></i>
+                            <span>Laba Rugi Perusahaan</span>
+                        </a>
+                    @endif
 
-                    <a href="{{ route('audit_logs.index') }}" 
-                       class="flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg transition duration-150 {{ request()->routeIs('audit_logs.index') ? 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white' }}">
-                        <i class="ti ti-shield-lock text-base"></i>
-                        <span>Audit Trail Logs</span>
-                    </a>
+                    @if(Auth::user()->canViewAuditLogs())
+                        <a href="{{ route('audit_logs.index') }}" 
+                           class="flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg transition duration-150 {{ request()->routeIs('audit_logs.index') ? 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white' }}">
+                            <i class="ti ti-shield-lock text-base"></i>
+                            <span>Audit Trail Logs</span>
+                        </a>
+                    @endif
                 </nav>
             </div>
         @endif
 
-        <!-- Admin & User Management -->
-        @if(Auth::user()->isOwner() || Auth::user()->isAdmin())
+        <!-- Admin & IT User Management -->
+        @if(Auth::user()->canManageUsers())
             <div>
                 <p class="px-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2">Sistem & Pengguna</p>
                 <nav class="space-y-1">
