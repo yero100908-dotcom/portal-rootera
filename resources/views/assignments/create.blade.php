@@ -1,31 +1,32 @@
 <x-app-layout>
     <x-slot name="header">
         <div class="flex items-center justify-between w-full">
-            <div>
-                <h1 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                    <i class="ti ti-plus text-indigo-600 dark:text-indigo-400"></i> Buat Tugas Baru
+            <div class="min-w-0">
+                <div class="flex items-center gap-2 mb-1">
+                    <a href="{{ route('assignments.index') }}" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-white bg-slate-100 dark:bg-slate-800/80 transition group">
+                        <i class="ti ti-arrow-left group-hover:-translate-x-0.5 transition-transform"></i>
+                        <span>Kembali</span>
+                    </a>
+                </div>
+                <h1 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                    <i class="ti ti-plus text-indigo-600 dark:text-indigo-400"></i>
+                    <span>Buat Tugas Baru</span>
                 </h1>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Tambahkan tugas baru untuk karyawan/siswa beserta file instruksi & deadline
-                </p>
             </div>
-            <a href="{{ route('assignments.index') }}" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-lg border border-slate-200 dark:border-slate-700 transition flex items-center gap-1.5">
-                <i class="ti ti-arrow-left"></i> Kembali
-            </a>
         </div>
     </x-slot>
 
-    <div class="max-w-3xl mx-auto">
-        <div class="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-xl p-6 shadow-sm">
-            <form method="POST" action="{{ route('assignments.store') }}" enctype="multipart/form-data" class="space-y-5">
+    <div class="max-w-3xl mx-auto space-y-6">
+        <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 sm:p-7 shadow-xs">
+            <form method="POST" action="{{ route('assignments.store') }}" enctype="multipart/form-data" class="space-y-5" x-data="{ selectedFileName: '', selectedFileSize: '' }">
                 @csrf
 
                 <!-- Judul Tugas -->
                 <div>
-                    <label for="title" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                    <label for="title" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                         Judul Tugas <span class="text-rose-500">*</span>
                     </label>
-                    <input type="text" id="title" name="title" value="{{ old('title') }}" required placeholder="Contoh: Modul 1 - Desain Mockup UI & Laporan Kas" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs rounded-lg px-3.5 py-2.5 focus:ring-1 focus:ring-indigo-500 @error('title') border-rose-500 @enderror">
+                    <input type="text" id="title" name="title" value="{{ old('title') }}" required placeholder="Contoh: Modul 1 - Pembuatan Desain UI & Laporan Kas" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 @error('title') border-rose-500 @enderror">
                     @error('title')
                         <p class="text-rose-500 text-[11px] mt-1">{{ $message }}</p>
                     @enderror
@@ -33,23 +34,23 @@
 
                 <!-- Deskripsi / Instruksi -->
                 <div>
-                    <label for="description" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                        Deskripsi / Instruksi Tugas <span class="text-rose-500">*</span>
+                    <label for="description" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                        Deskripsi & Instruksi Tugas <span class="text-rose-500">*</span>
                     </label>
-                    <textarea id="description" name="description" rows="5" required placeholder="Tuliskan petunjuk pengerjaan tugas, kriteria penilaian, format file, atau link pendukung..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs rounded-lg px-3.5 py-2.5 focus:ring-1 focus:ring-indigo-500 @error('description') border-rose-500 @enderror">{{ old('description') }}</textarea>
+                    <textarea id="description" name="description" rows="6" required placeholder="Tuliskan petunjuk pengerjaan tugas, kriteria kelulusan, tautan repositori acuan, atau format berkas pengumpulan..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs sm:text-sm rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 @error('description') border-rose-500 @enderror">{{ old('description') }}</textarea>
                     @error('description')
                         <p class="text-rose-500 text-[11px] mt-1">{{ $message }}</p>
                     @enderror
                 </div>
 
-                <!-- Deadline & File Attachment -->
+                <!-- Deadline & File Attachment (Responsive 1-col mobile, 2-col tablet/desktop) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <!-- Deadline -->
                     <div>
-                        <label for="deadline" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                        <label for="deadline" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                             Batas Waktu Pengumpulan (Deadline) <span class="text-rose-500">*</span>
                         </label>
-                        <input type="datetime-local" id="deadline" name="deadline" value="{{ old('deadline') }}" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs rounded-lg px-3.5 py-2.5 focus:ring-1 focus:ring-indigo-500 @error('deadline') border-rose-500 @enderror">
+                        <input type="datetime-local" id="deadline" name="deadline" value="{{ old('deadline') }}" required class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs sm:text-sm font-mono rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 @error('deadline') border-rose-500 @enderror">
                         @error('deadline')
                             <p class="text-rose-500 text-[11px] mt-1">{{ $message }}</p>
                         @enderror
@@ -57,32 +58,45 @@
 
                     <!-- File Attachment -->
                     <div>
-                        <label for="file_attachment" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                        <label for="file_attachment" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
                             File Lampiran / Panduan (Opsional)
                         </label>
-                        <input type="file" id="file_attachment" name="file_attachment" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs rounded-lg px-3 py-1.5 focus:ring-1 focus:ring-indigo-500 file:mr-3 file:py-1 file:px-2.5 file:rounded-md file:border-0 file:text-[11px] file:font-semibold file:bg-indigo-50 file:text-indigo-700 dark:file:bg-indigo-950 dark:file:text-indigo-300">
-                        <p class="text-[10px] text-slate-500 mt-1">Format disukai: PDF, DOCX, ZIP, PNG, JPG (Maks. 10MB)</p>
+                        <input type="file" id="file_attachment" name="file_attachment" 
+                               @change="if($event.target.files.length > 0) { selectedFileName = $event.target.files[0].name; selectedFileSize = ($event.target.files[0].size / 1024 / 1024).toFixed(2) + ' MB'; }"
+                               class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-[11px] file:font-semibold file:bg-indigo-50 file:text-indigo-700 dark:file:bg-indigo-950 dark:file:text-indigo-300">
+                        <template x-if="selectedFileName">
+                            <p class="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold mt-1.5 flex items-center gap-1">
+                                <i class="ti ti-check"></i>
+                                <span x-text="selectedFileName + ' (' + selectedFileSize + ')'"></span>
+                            </p>
+                        </template>
+                        <p class="text-[10px] text-slate-400 mt-1">PDF, DOCX, ZIP, PNG, JPG (Maks. 10MB)</p>
                         @error('file_attachment')
                             <p class="text-rose-500 text-[11px] mt-1">{{ $message }}</p>
                         @enderror
                     </div>
                 </div>
 
-                <!-- Checkbox Status Aktif -->
-                <div class="pt-2">
-                    <label class="inline-flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" name="is_active" value="1" {{ old('is_active', '1') ? 'checked' : '' }} class="w-4 h-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
-                        <span class="text-xs font-semibold text-slate-700 dark:text-slate-300">Publikasikan & Aktifkan Tugas Ini</span>
+                <!-- Modern Switch Toggle Status Aktif -->
+                <div class="pt-3 border-t border-slate-100 dark:border-slate-800">
+                    <label class="inline-flex items-center gap-3 cursor-pointer select-none">
+                        <input type="checkbox" name="is_active" value="1" {{ old('is_active', '1') ? 'checked' : '' }} class="sr-only peer">
+                        <div class="w-11 h-6 bg-slate-200 peer-focus:outline-hidden peer-focus:ring-2 peer-focus:ring-indigo-500/30 rounded-full peer dark:bg-slate-800 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-indigo-600"></div>
+                        <div>
+                            <span class="text-xs font-bold text-slate-800 dark:text-slate-200 block">Publikasikan & Aktifkan Tugas Ini</span>
+                            <span class="text-[10px] text-slate-400 block">Tugas langsung dapat dilihat dan dikerjakan oleh seluruh tim</span>
+                        </div>
                     </label>
                 </div>
 
-                <!-- Submit Button -->
-                <div class="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3">
-                    <a href="{{ route('assignments.index') }}" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-lg transition">
+                <!-- Responsive Submit Buttons -->
+                <div class="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5">
+                    <a href="{{ route('assignments.index') }}" class="w-full sm:w-auto px-4 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl transition text-center">
                         Batal
                     </a>
-                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-lg shadow-sm transition flex items-center gap-1.5">
-                        <i class="ti ti-check text-base"></i> Simpan Tugas
+                    <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-semibold text-xs rounded-xl shadow-sm shadow-indigo-500/25 transition active:scale-95">
+                        <i class="ti ti-check text-base"></i>
+                        <span>Simpan & Terbitkan Tugas</span>
                     </button>
                 </div>
             </form>

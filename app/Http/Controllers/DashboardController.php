@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Assignment;
+use App\Models\AssignmentSubmission;
 use App\Models\Attendance;
 use App\Models\ContentCalendar;
 use App\Models\Order;
@@ -54,6 +56,24 @@ class DashboardController extends Controller
         // All users list for modal selections
         $usersList = User::where('is_active', true)->get();
 
+        // Assignment Widgets
+        $isManager = $user->canManageAssignments();
+        $pendingGradingCount = 0;
+        $activeAssignmentsCount = 0;
+        $pendingAssignments = collect();
+
+        if ($isManager) {
+            $pendingGradingCount = AssignmentSubmission::whereNull('score')->count();
+            $activeAssignmentsCount = Assignment::where('is_active', true)->where('deadline', '>=', now())->count();
+        } else {
+            $pendingAssignments = Assignment::where('is_active', true)
+                ->where('deadline', '>=', now())
+                ->whereDoesntHave('submissions', fn ($q) => $q->where('user_id', $user->id))
+                ->orderBy('deadline', 'asc')
+                ->take(5)
+                ->get();
+        }
+
         return view('dashboard', compact(
             'user',
             'financials',
@@ -64,7 +84,11 @@ class DashboardController extends Controller
             'upcomingContents',
             'personalAttendance',
             'recentOrders',
-            'usersList'
+            'usersList',
+            'isManager',
+            'pendingGradingCount',
+            'activeAssignmentsCount',
+            'pendingAssignments'
         ));
     }
 }

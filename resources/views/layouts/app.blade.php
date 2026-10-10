@@ -73,22 +73,22 @@
             <!-- Main Content Area -->
             <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
                 <!-- Top Header Bar -->
-                <header class="sticky top-0 z-30 bg-white/80 dark:bg-slate-950/80 backdrop-blur border-b border-slate-200 dark:border-slate-800/80 px-4 sm:px-6 py-4 flex items-center justify-between gap-4 transition-colors duration-200">
-                    <div class="flex items-center gap-3">
+                <header class="sticky top-0 z-30 bg-white/85 dark:bg-slate-950/85 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 px-3 sm:px-6 py-3 sm:py-3.5 flex items-center justify-between gap-2 sm:gap-4 transition-colors duration-200">
+                    <div class="flex items-center gap-2 sm:gap-3 min-w-0">
                         <!-- Mobile Sidebar Hamburger Toggle -->
-                        <button @click="sidebarOpen = true" class="md:hidden p-2 rounded-lg text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900 border border-slate-200 dark:border-slate-800 transition">
-                            <i class="ti ti-menu-2 text-xl"></i>
+                        <button @click="sidebarOpen = true" aria-label="Open Navigation Menu" class="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900 border border-slate-200 dark:border-slate-800 transition shrink-0">
+                            <i class="ti ti-menu-2 text-lg sm:text-xl"></i>
                         </button>
 
                         @isset($header)
-                            <div>{{ $header }}</div>
+                            <div class="min-w-0 truncate">{{ $header }}</div>
                         @else
-                            <h1 class="text-base font-semibold text-slate-900 dark:text-white">SmartAttend Pro Enterprise</h1>
+                            <h1 class="text-sm sm:text-base font-semibold text-slate-900 dark:text-white truncate">SmartAttend Pro</h1>
                         @endisset
                     </div>
 
                     <!-- Header Quick Actions, Theme Switcher & User Pill -->
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
                         <a href="{{ route('attendance.create') }}" class="hidden sm:inline-flex items-center gap-2 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg transition shadow-sm">
                             <i class="ti ti-camera text-sm"></i> Presensi Wajah
                         </a>

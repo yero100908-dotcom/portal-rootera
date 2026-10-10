@@ -66,6 +66,10 @@ class LoginRequest extends FormRequest
             'rafa' => 'rafa@smartattend.com',
             'ghaitsaa' => 'ghaitsaa@smartattend.com',
             'karyawan' => 'yero@smartattend.com',
+            'karyawan@absensi.com' => 'yero@smartattend.com',
+            'owner@absensi.com' => 'wibowo@smartattend.com',
+            'admin@absensi.com' => 'mono@smartattend.com',
+            'mentor@absensi.com' => 'rafael@smartattend.com',
         ];
 
         $targetEmail = $aliasMap[$cleanInput] ?? $rawInput;

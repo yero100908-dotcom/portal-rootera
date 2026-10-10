@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AssignmentController;
+use App\Http\Controllers\AssignmentReportController;
 use App\Http\Controllers\AssignmentSubmissionController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\AuditLogController;
@@ -89,6 +90,14 @@ Route::middleware(['auth'])->group(function () {
         Route::get('assignments/{assignment}/edit', [AssignmentController::class, 'edit'])->name('assignments.edit');
         Route::put('assignments/{assignment}', [AssignmentController::class, 'update'])->name('assignments.update');
         Route::delete('assignments/{assignment}', [AssignmentController::class, 'destroy'])->name('assignments.destroy');
+    });
+
+    // Rute Khusus Mentor & Owner (Pengecekan Tugas, Penilaian, Rekap Bulanan, Perpanjangan Waktu)
+    Route::middleware(['role:owner,mentor'])->group(function () {
+        Route::get('assignments/rekap-bulanan', [AssignmentReportController::class, 'index'])->name('assignments.rekap-bulanan');
+        Route::get('assignments/rekap-bulanan/export', [AssignmentReportController::class, 'export'])->name('assignments.rekap-bulanan.export');
+        Route::get('assignments/{assignment}/submissions', [AssignmentController::class, 'submissions'])->name('assignments.submissions');
+        Route::post('assignments/{assignment}/extend-user', [AssignmentController::class, 'extendUserDueDate'])->name('assignments.extend-user');
         Route::post('/submissions/{submission}/grade', [AssignmentSubmissionController::class, 'grade'])->name('submissions.grade');
     });
 

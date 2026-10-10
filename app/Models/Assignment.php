@@ -38,14 +38,52 @@ class Assignment extends Model
         return $this->hasMany(AssignmentSubmission::class);
     }
 
+    public function overrides(): HasMany
+    {
+        return $this->hasMany(AssignmentUserOverride::class);
+    }
+
     public function isOverdue(): bool
     {
         return now()->greaterThan($this->deadline);
     }
 
+    public function getOverrideForUser($user): ?AssignmentUserOverride
+    {
+        $userId = $user instanceof User ? $user->id : $user;
+
+        if ($this->relationLoaded('overrides')) {
+            return $this->overrides->firstWhere('user_id', $userId);
+        }
+
+        return $this->overrides()->where('user_id', $userId)->first();
+    }
+
+    public function getEffectiveDeadlineForUser($user)
+    {
+        $override = $this->getOverrideForUser($user);
+
+        if ($override && $override->is_unlocked && $override->custom_due_date) {
+            return $override->custom_due_date;
+        }
+
+        return $this->deadline;
+    }
+
+    public function isOverdueForUser($user): bool
+    {
+        $effectiveDeadline = $this->getEffectiveDeadlineForUser($user);
+
+        return $effectiveDeadline ? now()->greaterThan($effectiveDeadline) : false;
+    }
+
     public function getSubmissionForUser($user): ?AssignmentSubmission
     {
         $userId = $user instanceof User ? $user->id : $user;
+
+        if ($this->relationLoaded('submissions')) {
+            return $this->submissions->firstWhere('user_id', $userId);
+        }
 
         return $this->submissions()->where('user_id', $userId)->first();
     }

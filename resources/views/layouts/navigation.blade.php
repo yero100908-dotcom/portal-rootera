@@ -12,21 +12,21 @@
 
 <!-- Sidebar Drawer -->
 <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-       class="fixed md:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900/95 border-r border-slate-200 dark:border-slate-800/80 flex flex-col transition-all duration-200 ease-in-out md:translate-x-0 shrink-0">
+       class="fixed md:static inset-y-0 left-0 z-50 w-72 md:w-64 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-r border-slate-200/80 dark:border-slate-800/80 flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 shrink-0 shadow-2xl md:shadow-none">
     
     <!-- Brand / Logo Header -->
-    <div class="h-16 px-6 flex items-center justify-between border-b border-slate-200 dark:border-slate-800/80">
-        <a href="{{ route('dashboard') }}" class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center text-white font-bold text-base shadow-sm">
+    <div class="h-16 px-5 sm:px-6 flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/30">
+        <a href="{{ route('dashboard') }}" class="flex items-center gap-3 group">
+            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center text-white font-bold text-base shadow-sm shadow-indigo-500/30 group-hover:scale-105 transition-transform">
                 <i class="ti ti-scan"></i>
             </div>
             <div>
-                <span class="font-bold text-sm tracking-tight text-slate-900 dark:text-white block">SmartAttend</span>
-                <span class="text-[10px] text-indigo-600 dark:text-indigo-400 font-mono block leading-none">ENTERPRISE OS</span>
+                <span class="font-bold text-sm tracking-tight text-slate-900 dark:text-white block group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">SmartAttend</span>
+                <span class="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 font-mono tracking-wider block leading-none">ENTERPRISE OS</span>
             </div>
         </a>
-        <button @click="sidebarOpen = false" class="md:hidden text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white">
-            <i class="ti ti-x text-lg"></i>
+        <button @click="sidebarOpen = false" class="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            <i class="ti ti-x text-xl"></i>
         </button>
     </div>
 
@@ -58,11 +58,41 @@
                 </a>
 
                 <!-- Manajemen Tugas / Assignment -->
+                @php
+                    $navUser = Auth::user();
+                    $assBadgeCount = 0;
+                    if ($navUser) {
+                        if ($navUser->canManageAssignments()) {
+                            $assBadgeCount = \App\Models\AssignmentSubmission::whereNull('score')->count();
+                        } else {
+                            $assBadgeCount = \App\Models\Assignment::where('is_active', true)
+                                ->where('deadline', '>=', now())
+                                ->whereDoesntHave('submissions', fn($q) => $q->where('user_id', $navUser->id))
+                                ->count();
+                        }
+                    }
+                @endphp
                 <a href="{{ route('assignments.index') }}" 
-                   class="flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg transition duration-150 {{ request()->routeIs('assignments.*') ? 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white' }}">
-                    <i class="ti ti-notebook text-base"></i>
-                    <span>Manajemen Tugas</span>
+                   class="flex items-center justify-between px-3 py-2.5 text-xs font-medium rounded-xl transition duration-150 {{ (request()->routeIs('assignments.*') && !request()->routeIs('assignments.rekap-bulanan*')) ? 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30 font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white' }}">
+                    <div class="flex items-center gap-3">
+                        <i class="ti ti-notebook text-base"></i>
+                        <span>Manajemen Tugas</span>
+                    </div>
+                    @if($assBadgeCount > 0)
+                        <span class="px-2 py-0.5 text-[10px] font-bold rounded-full {{ $navUser->canManageAssignments() ? 'bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30' : 'bg-rose-500 text-white shadow-xs animate-pulse' }}">
+                            {{ $assBadgeCount }}
+                        </span>
+                    @endif
                 </a>
+
+                @if(in_array(auth()->user()->role, ['mentor', 'owner']))
+                    <!-- Rekap Tugas Bulanan (Khusus Mentor & Owner) -->
+                    <a href="{{ route('assignments.rekap-bulanan') }}" 
+                       class="flex items-center gap-3 px-3 py-2 text-xs font-medium rounded-lg transition duration-150 {{ request()->routeIs('assignments.rekap-bulanan*') ? 'bg-indigo-50 dark:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-500/30 font-semibold shadow-xs' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-white' }}">
+                        <i class="ti ti-report-analytics text-base"></i>
+                        <span>Rekap Tugas Bulanan</span>
+                    </a>
+                @endif
             </nav>
         </div>
 

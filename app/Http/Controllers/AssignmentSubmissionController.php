@@ -23,6 +23,14 @@ class AssignmentSubmissionController extends Controller
             return back()->with('error', 'Tugas ini sudah tidak aktif.');
         }
 
+        // Deadline check (global or individual override)
+        if ($assignment->isOverdueForUser(Auth::user())) {
+            $effectiveDeadline = $assignment->getEffectiveDeadlineForUser(Auth::user());
+            $formattedDeadline = $effectiveDeadline ? $effectiveDeadline->translatedFormat('d M Y H:i') : '-';
+
+            return back()->with('error', "Batas waktu pengumpulan tugas ini telah berakhir pada {$formattedDeadline}.");
+        }
+
         $request->validate([
             'submission_file' => 'nullable|file|max:20480',
             'submission_url' => 'nullable|url|max:1000',
@@ -53,33 +61,63 @@ class AssignmentSubmissionController extends Controller
                 'submission_file' => $filePath,
                 'submission_url' => $request->input('submission_url'),
                 'notes' => $request->input('notes'),
+                'status' => 'submitted',
                 'submitted_at' => now(),
             ]
         );
 
-        return redirect()->route('assignments.show', $assignment->id)
-            ->with('success', 'Pengumpulan tugas Anda berhasil disimpan.');
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Tugas berhasil dikumpulkan!',
+                'redirect_url' => route('assignments.index'),
+            ]);
+        }
+
+        return redirect()->route('assignments.index')
+            ->with('success', 'Tugas berhasil dikumpulkan!');
     }
 
     /**
-     * Input grade (score) and feedback for a submission (Manager only).
+     * Input grade (score) and feedback for a submission (Mentor & Owner only).
      */
     public function grade(Request $request, AssignmentSubmission $submission)
     {
-        if (! Auth::user()->canManageAssignments()) {
-            abort(403, 'Anda tidak memiliki akses untuk memberikan nilai.');
+        $user = Auth::user();
+        if (! ($user->isOwner() || $user->isMentor() || $user->hasAnyRole(['owner', 'mentor']))) {
+            abort(403, 'Hanya Mentor dan Owner yang berwenang memberikan nilai tugas.');
         }
 
         $validated = $request->validate([
             'score' => 'required|integer|min:0|max:100',
             'feedback' => 'nullable|string|max:2000',
+            'status' => 'nullable|in:submitted,graded,revision_needed',
         ]);
 
         $submission->update([
             'score' => $validated['score'],
-            'feedback' => $validated['feedback'],
+            'feedback' => $validated['feedback'] ?? null,
+            'status' => $request->input('status', 'graded'),
+            'graded_by' => $user->id,
+            'graded_at' => now(),
         ]);
 
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Nilai untuk {$submission->user->name} berhasil diperbarui.",
+                'submission' => $submission->fresh(['grader', 'user']),
+            ]);
+        }
+
         return back()->with('success', "Nilai untuk {$submission->user->name} berhasil diperbarui.");
+    }
+
+    /**
+     * Alias for grade method to match naming conventions.
+     */
+    public function gradeSubmission(Request $request, AssignmentSubmission $submission)
+    {
+        return $this->grade($request, $submission);
     }
 }

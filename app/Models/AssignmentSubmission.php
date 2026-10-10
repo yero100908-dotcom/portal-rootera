@@ -18,6 +18,9 @@ class AssignmentSubmission extends Model
         'notes',
         'score',
         'feedback',
+        'graded_by',
+        'graded_at',
+        'status',
         'submitted_at',
     ];
 
@@ -25,6 +28,7 @@ class AssignmentSubmission extends Model
     {
         return [
             'submitted_at' => 'datetime',
+            'graded_at' => 'datetime',
             'score' => 'integer',
         ];
     }
@@ -39,13 +43,29 @@ class AssignmentSubmission extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function grader(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'graded_by');
+    }
+
     public function isLate(): bool
     {
-        return $this->submitted_at->greaterThan($this->assignment->deadline);
+        if (! $this->assignment) {
+            return false;
+        }
+
+        $effectiveDeadline = $this->assignment->getEffectiveDeadlineForUser($this->user_id);
+
+        return $effectiveDeadline ? $this->submitted_at->greaterThan($effectiveDeadline) : false;
     }
 
     public function isGraded(): bool
     {
-        return ! is_null($this->score);
+        return ! is_null($this->score) || $this->status === 'graded';
+    }
+
+    public function isRevisionNeeded(): bool
+    {
+        return $this->status === 'revision_needed';
     }
 }

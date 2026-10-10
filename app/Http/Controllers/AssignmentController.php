@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Assignment;
 use App\Models\AssignmentSubmission;
+use App\Models\AssignmentUserOverride;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -18,7 +20,7 @@ class AssignmentController extends Controller
     {
         $user = Auth::user();
         $isManager = $user->canManageAssignments();
-        $query = Assignment::with(['creator', 'submissions']);
+        $query = Assignment::with(['creator', 'submissions'])->withCount('submissions');
 
         if ($request->filled('search')) {
             $search = $request->input('search');
@@ -45,17 +47,29 @@ class AssignmentController extends Controller
             $query->where('is_active', true);
 
             if ($submissionFilter === 'pending') {
-                // Hide assignments already submitted by this user (task disappears immediately!)
-                $query->whereDoesntHave('submissions', function ($q) use ($user) {
-                    $q->where('user_id', $user->id);
-                });
+                // Tab Belum Dikumpul: deadline belum lewat ATAU ada override aktif untuk user ini
+                $query->where(function ($q) use ($user) {
+                    $q->where('deadline', '>=', now())
+                        ->orWhereHas('overrides', function ($oq) use ($user) {
+                            $oq->where('user_id', $user->id)
+                                ->where('is_unlocked', true)
+                                ->where('custom_due_date', '>=', now());
+                        });
+                })
+                    ->whereDoesntHave('submissions', function ($q) use ($user) {
+                        $q->where('user_id', $user->id);
+                    });
             } elseif ($submissionFilter === 'submitted') {
-                // Show assignments already submitted by this user
+                // Tab Riwayat Pengumpulan: tugas yang sudah disubmit oleh user
                 $query->whereHas('submissions', function ($q) use ($user) {
                     $q->where('user_id', $user->id);
                 });
             }
         }
+
+        $query->with(['overrides' => function ($oq) use ($user) {
+            $oq->where('user_id', $user->id)->where('is_unlocked', true);
+        }]);
 
         $assignments = $query->latest()->paginate(10)->withQueryString();
 
@@ -64,10 +78,18 @@ class AssignmentController extends Controller
         $activeAssignments = Assignment::where('is_active', true)->where('deadline', '>=', now())->count();
 
         // Stats for current user & manager overview
-        $userSubmissions = $user->assignmentSubmissions->keyBy('assignment_id');
+        $userSubmissions = AssignmentSubmission::where('user_id', $user->id)->get()->keyBy('assignment_id');
         $mySubmittedCount = $userSubmissions->count();
         $myGradedCount = $userSubmissions->whereNotNull('score')->count();
         $myPendingCount = Assignment::where('is_active', true)
+            ->where(function ($q) use ($user) {
+                $q->where('deadline', '>=', now())
+                    ->orWhereHas('overrides', function ($oq) use ($user) {
+                        $oq->where('user_id', $user->id)
+                            ->where('is_unlocked', true)
+                            ->where('custom_due_date', '>=', now());
+                    });
+            })
             ->whereDoesntHave('submissions', function ($q) use ($user) {
                 $q->where('user_id', $user->id);
             })->count();
@@ -144,7 +166,12 @@ class AssignmentController extends Controller
         $user = Auth::user();
         $isManager = $user->canManageAssignments();
 
-        $assignment->load(['creator', 'submissions.user']);
+        $assignment->load([
+            'creator',
+            'submissions.user',
+            'submissions.grader',
+            'overrides.unlockedBy',
+        ]);
 
         // Non-manager users shouldn't access inactive assignments
         if (! $isManager && ! $assignment->is_active) {
@@ -152,6 +179,7 @@ class AssignmentController extends Controller
         }
 
         $mySubmission = $assignment->getSubmissionForUser($user);
+        $userOverride = $assignment->getOverrideForUser($user);
 
         // For manager view: list all non-owner users to track who submitted & who hasn't
         $allUsers = collect();
@@ -172,6 +200,7 @@ class AssignmentController extends Controller
             'assignment',
             'isManager',
             'mySubmission',
+            'userOverride',
             'allUsers',
             'submittedUserIds'
         ));
@@ -244,5 +273,103 @@ class AssignmentController extends Controller
         $assignment->delete();
 
         return redirect()->route('assignments.index')->with('success', 'Tugas berhasil dihapus.');
+    }
+
+    /**
+     * Display the submissions review and grading matrix for a specific assignment (Mentor & Owner only).
+     */
+    public function submissions(Assignment $assignment)
+    {
+        $user = Auth::user();
+        if (! ($user->isOwner() || $user->isMentor() || $user->hasAnyRole(['owner', 'mentor']))) {
+            abort(403, 'Akses ditolak. Halaman pengecekan tugas ini khusus untuk Mentor dan Owner.');
+        }
+
+        $assignment->load([
+            'creator',
+            'submissions.user',
+            'submissions.grader',
+            'overrides.unlockedBy',
+        ]);
+
+        // All active assignees (non-managers: karyawan, sosmed, cs, it, siswa)
+        $allUsers = User::where('is_active', true)
+            ->orderBy('name')
+            ->get()
+            ->reject(fn ($u) => $u->canManageAssignments())
+            ->values();
+
+        $submittedUserIds = $assignment->submissions->pluck('user_id');
+        $unsubmittedUsers = $allUsers->reject(fn ($u) => $submittedUserIds->contains($u->id))->values();
+        $userOverrides = $assignment->overrides->keyBy('user_id');
+
+        $totalAssignees = $allUsers->count();
+        $submittedCount = $assignment->submissions->count();
+        $gradedCount = $assignment->submissions->whereNotNull('score')->count();
+        $ungradedCount = $assignment->submissions->whereNull('score')->count();
+        $lateCount = $assignment->submissions->filter(fn ($s) => $s->isLate())->count();
+
+        return view('assignments.submissions', compact(
+            'assignment',
+            'allUsers',
+            'unsubmittedUsers',
+            'userOverrides',
+            'totalAssignees',
+            'submittedCount',
+            'gradedCount',
+            'ungradedCount',
+            'lateCount'
+        ));
+    }
+
+    /**
+     * Extend custom due date / reopen assignment for a specific user (Mentor & Owner only).
+     */
+    public function extendUserDueDate(Request $request, Assignment $assignment)
+    {
+        $user = Auth::user();
+        if (! ($user->isOwner() || $user->isMentor() || $user->hasAnyRole(['owner', 'mentor']))) {
+            abort(403, 'Hanya Mentor dan Owner yang berwenang memberikan perpanjangan waktu tugas.');
+        }
+
+        $validated = $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'custom_due_date' => 'required|date',
+            'reason' => 'nullable|string|max:1000',
+        ]);
+
+        $override = AssignmentUserOverride::updateOrCreate(
+            [
+                'assignment_id' => $assignment->id,
+                'user_id' => $validated['user_id'],
+            ],
+            [
+                'custom_due_date' => $validated['custom_due_date'],
+                'is_unlocked' => true,
+                'unlocked_by' => $user->id,
+                'reason' => $validated['reason'] ?? null,
+            ]
+        );
+
+        $targetUser = User::find($validated['user_id']);
+        $formattedDate = Carbon::parse($validated['custom_due_date'])->translatedFormat('d M Y H:i');
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Tenggat waktu untuk {$targetUser->name} berhasil diperpanjang hingga {$formattedDate}.",
+                'override' => $override->load('unlockedBy'),
+            ]);
+        }
+
+        return back()->with('success', "Tenggat waktu untuk {$targetUser->name} berhasil diperpanjang hingga {$formattedDate}.");
+    }
+
+    /**
+     * Display the monthly assignment report (mentor & owner only).
+     */
+    public function rekapBulanan(Request $request)
+    {
+        return app(AssignmentReportController::class)->index($request);
     }
 }

@@ -36,6 +36,24 @@
                     </button>
                 @endif
 
+                @if($user->canManageAssignments())
+                    <a href="{{ route('assignments.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 transition">
+                        <i class="ti ti-notebook text-indigo-600 dark:text-indigo-400"></i>
+                        <span>Manajemen Tugas</span>
+                        @if($pendingGradingCount > 0)
+                            <span class="px-1.5 py-0.2 text-[10px] font-bold rounded-full bg-amber-500 text-white">{{ $pendingGradingCount }}</span>
+                        @endif
+                    </a>
+                @else
+                    <a href="{{ route('assignments.index') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold rounded-lg border border-slate-200 dark:border-slate-700 transition">
+                        <i class="ti ti-notebook text-indigo-600 dark:text-indigo-400"></i>
+                        <span>Tugas Saya</span>
+                        @if($pendingAssignments->count() > 0)
+                            <span class="px-1.5 py-0.2 text-[10px] font-bold rounded-full bg-rose-500 text-white animate-pulse">{{ $pendingAssignments->count() }}</span>
+                        @endif
+                    </a>
+                @endif
+
                 <a href="{{ route('attendance.create') }}" class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow-sm transition">
                     <i class="ti ti-camera"></i> Scan Kamera
                 </a>
@@ -122,7 +140,7 @@
                 <!-- Non-financial cards for Karyawan / Siswa -->
                 <div class="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-xl p-5 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-200">
                     <div class="flex items-center justify-between mb-3">
-                        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Status Hari Ini</span>
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Status Presensi</span>
                         <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center border border-emerald-500/20">
                             <i class="ti ti-user-check text-lg"></i>
                         </div>
@@ -135,6 +153,19 @@
                         @endif
                     </div>
                     <a href="{{ route('attendance.create') }}" class="mt-3 block text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium">Absen Sekarang &rarr;</a>
+                </div>
+
+                <div class="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-xl p-5 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-200">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Tugas Aktif Anda</span>
+                        <div class="w-8 h-8 rounded-lg {{ $pendingAssignments->count() > 0 ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20' : 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20' }} flex items-center justify-center">
+                            <i class="ti {{ $pendingAssignments->count() > 0 ? 'ti-notebook' : 'ti-check' }} text-lg"></i>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold {{ $pendingAssignments->count() > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400' }} tracking-tight">
+                        {{ $pendingAssignments->count() }} Tugas
+                    </div>
+                    <a href="{{ route('assignments.index') }}" class="mt-3 block text-xs text-indigo-600 dark:text-indigo-400 hover:underline font-medium">Lihat Tugas &rarr;</a>
                 </div>
 
                 <div class="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-xl p-5 shadow-sm hover:border-slate-300 dark:hover:border-slate-700 transition-colors duration-200">
