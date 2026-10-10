@@ -456,5 +456,39 @@ class AssignmentTest extends TestCase
         $employeeShowResponse->assertStatus(200);
         $employeeShowResponse->assertSee('92');
         $employeeShowResponse->assertSee('Komposisi warna dan tipografi sangat profesional');
+        $employeeShowResponse->assertSee('Telah Dinilai &amp; Selesai', false);
+    }
+
+    public function test_mentor_can_grade_submission_via_ajax_without_page_reload(): void
+    {
+        $mentor = User::factory()->create(['role' => 'mentor']);
+        $employee = User::factory()->create(['role' => 'karyawan']);
+
+        $assignment = Assignment::create([
+            'title' => 'Tugas Frontend API',
+            'description' => 'Kerjakan API',
+            'deadline' => now()->addDays(3),
+            'created_by' => $mentor->id,
+            'is_active' => true,
+        ]);
+
+        $submission = $assignment->submissions()->create([
+            'user_id' => $employee->id,
+            'submission_url' => 'https://github.com/api',
+            'notes' => 'API siap',
+            'submitted_at' => now(),
+        ]);
+
+        $ajaxResponse = $this->actingAs($mentor)->postJson(route('submissions.grade', $submission->id), [
+            'score' => 88,
+            'feedback' => 'Bagus dan rapi',
+            'status' => 'graded',
+        ]);
+
+        $ajaxResponse->assertStatus(200);
+        $ajaxResponse->assertJson([
+            'success' => true,
+        ]);
+        $this->assertEquals(88, $submission->fresh()->score);
     }
 }

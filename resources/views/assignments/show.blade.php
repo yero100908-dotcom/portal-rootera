@@ -417,7 +417,25 @@
                                 </button>
                             </div>
 
-                            <form method="POST" action="{{ route('submissions.grade', $sub->id) }}" class="space-y-4" x-data="{ currentScore: '{{ old('score', $sub->score ?? 85) }}' }">
+                            <form method="POST" action="{{ route('submissions.grade', $sub->id) }}" 
+                                  @submit.prevent="
+                                      isSaving = true;
+                                      fetch('{{ route('submissions.grade', $sub->id) }}', {
+                                          method: 'POST',
+                                          headers: {
+                                              'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                              'Accept': 'application/json'
+                                          },
+                                          body: new FormData($event.target)
+                                      }).then(r => r.json()).then(data => {
+                                          if (data.success) {
+                                              window.location.reload();
+                                          } else {
+                                              $event.target.submit();
+                                          }
+                                      }).catch(e => $event.target.submit());
+                                  "
+                                  class="space-y-4" x-data="{ currentScore: '{{ old('score', $sub->score ?? 85) }}', isSaving: false }">
                                 @csrf
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
@@ -439,6 +457,16 @@
 
                                 <div>
                                     <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                        Status Penilaian
+                                    </label>
+                                    <select name="status" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500">
+                                        <option value="graded" {{ ($sub->status ?? 'graded') === 'graded' ? 'selected' : '' }}>Telah Dinilai (Selesai)</option>
+                                        <option value="revision_needed" {{ ($sub->status ?? '') === 'revision_needed' ? 'selected' : '' }}>Perlu Revisi (Memerlukan Perbaikan)</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                                         Umpan Balik / Feedback Mentor
                                     </label>
                                     <textarea name="feedback" rows="3" placeholder="Tuliskan catatan apresiasi, saran perbaikan, atau poin evaluasi..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500">{{ old('feedback', $sub->feedback) }}</textarea>
@@ -448,8 +476,9 @@
                                     <button type="button" @click="openGradeModal = null" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl transition">
                                         Batal
                                     </button>
-                                    <button type="submit" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-xs transition active:scale-95">
-                                        Simpan Nilai
+                                    <button type="submit" :disabled="isSaving" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl shadow-xs transition active:scale-95 flex items-center gap-1.5 disabled:opacity-50">
+                                        <span x-show="!isSaving" class="flex items-center gap-1.5"><i class="ti ti-device-floppy"></i> <span>Simpan Nilai</span></span>
+                                        <span x-show="isSaving" class="flex items-center gap-1.5" x-cloak><i class="ti ti-loader animate-spin"></i> <span>Menyimpan...</span></span>
                                     </button>
                                 </div>
                             </form>
@@ -470,29 +499,51 @@
                         </h3>
 
                         @if($mySubmission)
-                            <div class="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
-                                        <i class="ti ti-circle-check text-base"></i>
-                                        <span>Sudah Dikumpulkan</span>
-                                    </span>
-                                    <span class="text-[10px] font-mono text-slate-500 dark:text-slate-400">
-                                        {{ $mySubmission->submitted_at->format('d M, H:i') }}
-                                    </span>
+                            @if($mySubmission->isGraded())
+                                <!-- Graded Badge Header -->
+                                <div class="p-4 bg-purple-500/10 border border-purple-500/25 rounded-2xl space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold {{ $mySubmission->isRevisionNeeded() ? 'text-amber-600 dark:text-amber-400' : 'text-purple-600 dark:text-purple-400' }} flex items-center gap-1.5">
+                                            <i class="ti {{ $mySubmission->isRevisionNeeded() ? 'ti-refresh' : 'ti-award' }} text-base"></i>
+                                            <span>{{ $mySubmission->isRevisionNeeded() ? 'Perlu Revisi Jawaban' : 'Telah Dinilai & Selesai' }}</span>
+                                        </span>
+                                        <span class="px-2.5 py-1 text-xs font-extrabold font-mono rounded-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-xs">
+                                            Nilai: {{ $mySubmission->score }}/100
+                                        </span>
+                                    </div>
+                                    <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1 border-t border-purple-500/20">
+                                        <span>Dikumpul: <strong class="text-slate-700 dark:text-slate-300 font-mono">{{ $mySubmission->submitted_at->format('d M H:i') }}</strong></span>
+                                        <span class="{{ $mySubmission->isLate() ? 'text-amber-600 font-semibold' : 'text-emerald-600 font-semibold' }}">
+                                            {{ $mySubmission->isLate() ? 'Terlambat' : 'Tepat Waktu' }}
+                                        </span>
+                                    </div>
                                 </div>
+                            @else
+                                <!-- Submitted But Pending Grade -->
+                                <div class="p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl space-y-2">
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-xs font-bold text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5">
+                                            <i class="ti ti-circle-check text-base"></i>
+                                            <span>Sudah Dikumpulkan</span>
+                                        </span>
+                                        <span class="text-[10px] font-mono text-slate-500 dark:text-slate-400">
+                                            {{ $mySubmission->submitted_at->format('d M, H:i') }}
+                                        </span>
+                                    </div>
 
-                                @if($mySubmission->isLate())
-                                    <p class="text-[11px] font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                                        <i class="ti ti-clock-exclamation"></i>
-                                        <span>Dikumpulkan melebihi batas waktu deadline</span>
-                                    </p>
-                                @else
-                                    <p class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                                        <i class="ti ti-check"></i>
-                                        <span>Dikumpulkan tepat waktu</span>
-                                    </p>
-                                @endif
-                            </div>
+                                    @if($mySubmission->isLate())
+                                        <p class="text-[11px] font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                                            <i class="ti ti-clock-exclamation"></i>
+                                            <span>Dikumpulkan melebihi batas waktu deadline</span>
+                                        </p>
+                                    @else
+                                        <p class="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                                            <i class="ti ti-check"></i>
+                                            <span>Dikumpulkan tepat waktu</span>
+                                        </p>
+                                    @endif
+                                </div>
+                            @endif
 
                             <!-- Grade & Feedback Section if graded -->
                             @if($mySubmission->isGraded())
@@ -502,7 +553,9 @@
                                             <i class="ti ti-trophy text-sm"></i>
                                             <span>Hasil Penilaian Mentor</span>
                                         </p>
-                                        <span class="text-xs font-bold text-purple-600 dark:text-purple-400">Tuntas</span>
+                                        <span class="text-xs font-bold {{ $mySubmission->isRevisionNeeded() ? 'text-amber-600' : 'text-purple-600 dark:text-purple-400' }}">
+                                            {{ $mySubmission->isRevisionNeeded() ? 'Perlu Revisi' : 'Tuntas' }}
+                                        </span>
                                     </div>
                                     <div class="flex items-baseline gap-1">
                                         <span class="text-3xl sm:text-4xl font-extrabold text-purple-700 dark:text-purple-300 font-mono">
@@ -510,6 +563,14 @@
                                         </span>
                                         <span class="text-xs font-semibold text-purple-500">/ 100</span>
                                     </div>
+                                    @if($mySubmission->grader)
+                                        <p class="text-[11px] text-slate-500 dark:text-slate-400">
+                                            Dinilai oleh: <strong class="text-slate-700 dark:text-slate-300">{{ $mySubmission->grader->name }}</strong>
+                                            @if($mySubmission->graded_at)
+                                                &bull; {{ $mySubmission->graded_at->translatedFormat('d M Y H:i') }}
+                                            @endif
+                                        </p>
+                                    @endif
                                     @if($mySubmission->feedback)
                                         <div class="pt-2 border-t border-purple-500/20 text-xs text-slate-700 dark:text-slate-300 italic leading-relaxed">
                                             "{{ $mySubmission->feedback }}"
@@ -553,116 +614,209 @@
                     </div>
                 </div>
 
-                <!-- Form Upload Submission (2 Columns) -->
+                <!-- Form Upload Submission & Summary (2 Columns) -->
                 <div class="lg:col-span-2">
-                    <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 sm:p-6 shadow-xs space-y-5" x-data="{ selectedFileName: '', selectedFileSize: '' }">
-                        <div class="border-b border-slate-100 dark:border-slate-800 pb-3.5">
-                            <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                                <i class="ti ti-upload text-indigo-600 dark:text-indigo-400"></i>
-                                <span>{{ $mySubmission ? 'Perbarui Pengumpulan Tugas' : 'Form Pengumpulan Tugas' }}</span>
-                            </h3>
-                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                                Silakan unggah dokumen/arsip atau cantumkan tautan URL proyek GitHub / Google Drive Anda
-                            </p>
+                    <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 sm:p-6 shadow-xs space-y-5" 
+                         x-data="{ 
+                            showUploadForm: {{ ($mySubmission && $mySubmission->isGraded() && !$mySubmission->isRevisionNeeded()) ? 'false' : 'true' }}, 
+                            selectedFileName: '', 
+                            selectedFileSize: '' 
+                         }">
+                        
+                        <!-- Header Box -->
+                        <div class="border-b border-slate-100 dark:border-slate-800 pb-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                            <div>
+                                <h3 class="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    @if($mySubmission && $mySubmission->isGraded() && !$mySubmission->isRevisionNeeded())
+                                        <i class="ti ti-circle-check text-emerald-600 dark:text-emerald-400 text-base"></i>
+                                        <span>Pengumpulan Selesai & Telah Dinilai</span>
+                                    @elseif($mySubmission && $mySubmission->isRevisionNeeded())
+                                        <i class="ti ti-refresh text-amber-600 dark:text-amber-400 text-base"></i>
+                                        <span>Unggah Revisi Tugas</span>
+                                    @elseif($mySubmission)
+                                        <i class="ti ti-file-check text-indigo-600 dark:text-indigo-400 text-base"></i>
+                                        <span>Berkas Pengumpulan Tugas Anda</span>
+                                    @else
+                                        <i class="ti ti-upload text-indigo-600 dark:text-indigo-400 text-base"></i>
+                                        <span>Form Pengumpulan Tugas</span>
+                                    @endif
+                                </h3>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                                    @if($mySubmission && $mySubmission->isGraded() && !$mySubmission->isRevisionNeeded())
+                                        Tugas Anda telah tuntas diperiksa oleh mentor. Rincian berkas dan jawaban Anda tertera di bawah ini.
+                                    @elseif($mySubmission && $mySubmission->isRevisionNeeded())
+                                        Mentor meminta perbaikan jawaban. Silakan tinjau catatan evaluasi mentor dan unggah kembali berkas revisi.
+                                    @elseif($mySubmission)
+                                        Tugas telah dikumpulkan dan sedang menunggu giliran review dari mentor.
+                                    @else
+                                        Silakan unggah dokumen/arsip atau cantumkan tautan URL proyek tugas Anda sebelum deadline.
+                                    @endif
+                                </p>
+                            </div>
+
+                            @if($mySubmission && !$assignment->isOverdueForUser(Auth::user()))
+                                <button type="button" 
+                                        @click="showUploadForm = !showUploadForm" 
+                                        class="self-start sm:self-auto text-xs font-semibold px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition flex items-center gap-1.5 shrink-0">
+                                    <i class="ti" :class="showUploadForm ? 'ti-x' : 'ti-edit'"></i>
+                                    <span x-text="showUploadForm ? 'Tutup Form Upload' : '{{ $mySubmission->isGraded() ? 'Unggah Ulang / Perbarui Jawaban' : 'Ubah Pengumpulan' }}'"></span>
+                                </button>
+                            @endif
                         </div>
 
-                        @if(!$isManager && $assignment->isOverdueForUser(Auth::user()))
-                            <div class="p-5 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-xs text-rose-700 dark:text-rose-400 flex items-start gap-3">
-                                <div class="w-8 h-8 rounded-xl bg-rose-500/20 flex items-center justify-center shrink-0 text-base">
-                                    <i class="ti ti-clock-off"></i>
-                                </div>
-                                <div class="space-y-1">
-                                    <strong class="block font-bold text-sm">Waktu Pengumpulan Tugas Telah Berakhir</strong>
-                                    <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
-                                        Batas waktu deadline telah terlewati dan pengumpulan telah ditutup. Silakan hubungi Mentor atau Owner jika Anda memerlukan pembukaan kembali atau perpanjangan tenggat waktu secara khusus.
-                                    </p>
-                                </div>
-                            </div>
-                        @else
-                        <form method="POST" action="{{ route('assignments.submit', $assignment->id) }}" enctype="multipart/form-data" class="space-y-4.5">
-                            @csrf
-
-                            <!-- File Upload Area -->
-                            <div>
-                                <label for="submission_file" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
-                                    Unggah File Tugas (PDF, DOCX, ZIP, Gambar, Maks 10MB)
-                                </label>
-                                
-                                <div class="relative border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-500 rounded-2xl p-4 sm:p-5 text-center transition bg-slate-50/50 dark:bg-slate-950/40 group">
-                                    <input type="file" id="submission_file" name="submission_file" 
-                                           @change="if($event.target.files.length > 0) { selectedFileName = $event.target.files[0].name; selectedFileSize = ($event.target.files[0].size / 1024 / 1024).toFixed(2) + ' MB'; }"
-                                           class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                                    
-                                    <div class="space-y-2 pointer-events-none">
-                                        <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto text-xl group-hover:scale-110 transition-transform">
-                                            <i class="ti ti-cloud-upload"></i>
-                                        </div>
-                                        <div class="text-xs text-slate-600 dark:text-slate-400">
-                                            <span class="font-bold text-indigo-600 dark:text-indigo-400">Pilih berkas</span> atau seret ke area ini
-                                        </div>
-                                        <p class="text-[10px] text-slate-400">PDF, DOCX, ZIP, RAR, PNG, JPG (Maks. 10MB)</p>
-                                    </div>
-                                </div>
-
-                                <!-- Live File Selected Preview -->
-                                <template x-if="selectedFileName">
-                                    <div class="mt-2.5 p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-500/20 flex items-center justify-between text-xs text-indigo-700 dark:text-indigo-300 font-semibold">
-                                        <div class="flex items-center gap-2 truncate">
-                                            <i class="ti ti-file-check text-base shrink-0"></i>
-                                            <span class="truncate" x-text="selectedFileName"></span>
-                                            <span class="text-[10px] font-mono text-indigo-500" x-text="'(' + selectedFileSize + ')'"></span>
-                                        </div>
-                                        <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Siap Dikirim</span>
-                                    </div>
-                                </template>
-
+                        <!-- Summary of Submitted Work (Shown when form is collapsed) -->
+                        <div x-show="!showUploadForm" class="space-y-4" x-cloak>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                                 @if($mySubmission && $mySubmission->submission_file)
-                                    <div class="mt-2 text-[11px] text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 font-medium">
-                                        <i class="ti ti-file-check"></i>
-                                        <span>File terunggah sebelumnya:</span>
-                                        <a href="{{ Storage::url($mySubmission->submission_file) }}" target="_blank" class="underline hover:text-indigo-500 font-bold">Lihat / Unduh</a>
+                                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-3">
+                                        <div class="flex items-center gap-3 truncate">
+                                            <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0 text-xl">
+                                                <i class="ti ti-file-text"></i>
+                                            </div>
+                                            <div class="truncate">
+                                                <span class="block text-xs font-bold text-slate-800 dark:text-slate-200 truncate">Berkas Tugas Terlampir</span>
+                                                <span class="text-[10px] text-slate-400 font-mono">Tersimpan aman</span>
+                                            </div>
+                                        </div>
+                                        <a href="{{ Storage::url($mySubmission->submission_file) }}" target="_blank" download class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1 shadow-xs">
+                                            <i class="ti ti-download text-xs"></i>
+                                            <span>Unduh File</span>
+                                        </a>
                                     </div>
                                 @endif
 
-                                @error('submission_file')
-                                    <p class="text-rose-500 text-[11px] mt-1">{{ $message }}</p>
-                                @enderror
+                                @if($mySubmission && $mySubmission->submission_url)
+                                    <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/80 flex items-center justify-between gap-3">
+                                        <div class="flex items-center gap-3 truncate">
+                                            <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center shrink-0 text-xl">
+                                                <i class="ti ti-link"></i>
+                                            </div>
+                                            <div class="truncate">
+                                                <span class="block text-xs font-bold text-slate-800 dark:text-slate-200 truncate">Tautan Dokumen / Proyek</span>
+                                                <span class="text-[10px] text-slate-400 truncate block">{{ $mySubmission->submission_url }}</span>
+                                            </div>
+                                        </div>
+                                        <a href="{{ $mySubmission->submission_url }}" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1 shadow-xs">
+                                            <i class="ti ti-external-link text-xs"></i>
+                                            <span>Buka URL</span>
+                                        </a>
+                                    </div>
+                                @endif
                             </div>
 
-                            <!-- Submission URL -->
-                            <div>
-                                <label for="submission_url" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                                    Tautan URL Proyek / Dokumen Eksternal (Opsional)
-                                </label>
-                                <div class="relative">
-                                    <i class="ti ti-link absolute left-3.5 top-3 text-slate-400 text-sm"></i>
-                                    <input type="url" id="submission_url" name="submission_url" value="{{ old('submission_url', $mySubmission->submission_url ?? '') }}" placeholder="https://github.com/username/repo atau tautan Google Drive" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs rounded-xl pl-10 pr-3 py-2.5 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500">
+                            @if($mySubmission && $mySubmission->notes)
+                                <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-950/60 border border-slate-200/80 dark:border-slate-800/80 space-y-1">
+                                    <span class="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">Catatan yang Anda Kirimkan:</span>
+                                    <p class="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">{{ $mySubmission->notes }}</p>
                                 </div>
-                                @error('submission_url')
-                                    <p class="text-rose-500 text-[11px] mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
+                            @endif
+                        </div>
 
-                            <!-- Notes -->
-                            <div>
-                                <label for="notes" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
-                                    Catatan Tambahan untuk Mentor (Opsional)
-                                </label>
-                                <textarea id="notes" name="notes" rows="3" placeholder="Tuliskan catatan singkat mengenai cara menjalankan kode atau rincian hasil pengerjaan..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500">{{ old('notes', $mySubmission->notes ?? '') }}</textarea>
-                                @error('notes')
-                                    <p class="text-rose-500 text-[11px] mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
+                        <!-- Upload Form (Shown when form is active) -->
+                        <div x-show="showUploadForm">
+                            @if(!$isManager && $assignment->isOverdueForUser(Auth::user()))
+                                <div class="p-5 bg-rose-500/10 border border-rose-500/20 rounded-2xl text-xs text-rose-700 dark:text-rose-400 flex items-start gap-3">
+                                    <div class="w-8 h-8 rounded-xl bg-rose-500/20 flex items-center justify-center shrink-0 text-base">
+                                        <i class="ti ti-clock-off"></i>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <strong class="block font-bold text-sm">Waktu Pengumpulan Tugas Telah Berakhir</strong>
+                                        <p class="text-slate-600 dark:text-slate-300 leading-relaxed">
+                                            Batas waktu deadline telah terlewati dan pengumpulan telah ditutup. Silakan hubungi Mentor atau Owner jika Anda memerlukan pembukaan kembali atau perpanjangan tenggat waktu secara khusus.
+                                        </p>
+                                    </div>
+                                </div>
+                            @else
+                                <form method="POST" action="{{ route('assignments.submit', $assignment->id) }}" enctype="multipart/form-data" class="space-y-4.5">
+                                    @csrf
 
-                            <!-- Submit Button -->
-                            <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-                                <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-semibold text-xs rounded-xl shadow-sm shadow-indigo-500/25 transition active:scale-95">
-                                    <i class="ti ti-send text-sm"></i>
-                                    <span>{{ $mySubmission ? 'Perbarui Pengumpulan' : 'Kirim Tugas Sekarang' }}</span>
-                                </button>
-                            </div>
-                        </form>
-                        @endif
+                                    <!-- File Upload Area -->
+                                    <div>
+                                        <label for="submission_file" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-2">
+                                            Unggah File Tugas (PDF, DOCX, ZIP, Gambar, Maks 10MB)
+                                        </label>
+                                        
+                                        <div class="relative border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-indigo-500 dark:hover:border-indigo-500 rounded-2xl p-4 sm:p-5 text-center transition bg-slate-50/50 dark:bg-slate-950/40 group">
+                                            <input type="file" id="submission_file" name="submission_file" 
+                                                   @change="if($event.target.files.length > 0) { selectedFileName = $event.target.files[0].name; selectedFileSize = ($event.target.files[0].size / 1024 / 1024).toFixed(2) + ' MB'; }"
+                                                   class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                                            
+                                            <div class="space-y-2 pointer-events-none">
+                                                <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center mx-auto text-xl group-hover:scale-110 transition-transform">
+                                                    <i class="ti ti-cloud-upload"></i>
+                                                </div>
+                                                <div class="text-xs text-slate-600 dark:text-slate-400">
+                                                    <span class="font-bold text-indigo-600 dark:text-indigo-400">Pilih berkas</span> atau seret ke area ini
+                                                </div>
+                                                <p class="text-[10px] text-slate-400">PDF, DOCX, ZIP, RAR, PNG, JPG (Maks. 10MB)</p>
+                                            </div>
+                                        </div>
+
+                                        <!-- Live File Selected Preview -->
+                                        <template x-if="selectedFileName">
+                                            <div class="mt-2.5 p-3 rounded-xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-500/20 flex items-center justify-between text-xs text-indigo-700 dark:text-indigo-300 font-semibold">
+                                                <div class="flex items-center gap-2 truncate">
+                                                    <i class="ti ti-file-check text-base shrink-0"></i>
+                                                    <span class="truncate" x-text="selectedFileName"></span>
+                                                    <span class="text-[10px] font-mono text-indigo-500" x-text="'(' + selectedFileSize + ')'"></span>
+                                                </div>
+                                                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-600">Siap Dikirim</span>
+                                            </div>
+                                        </template>
+
+                                        @if($mySubmission && $mySubmission->submission_file)
+                                            <div class="mt-2 text-[11px] text-indigo-600 dark:text-indigo-400 flex items-center gap-1.5 font-medium">
+                                                <i class="ti ti-file-check"></i>
+                                                <span>File terunggah sebelumnya:</span>
+                                                <a href="{{ Storage::url($mySubmission->submission_file) }}" target="_blank" class="underline hover:text-indigo-500 font-bold">Lihat / Unduh</a>
+                                            </div>
+                                        @endif
+
+                                        @error('submission_file')
+                                            <p class="text-rose-500 text-[11px] mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Submission URL -->
+                                    <div>
+                                        <label for="submission_url" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                            Tautan URL Proyek / Dokumen Eksternal (Opsional)
+                                        </label>
+                                        <div class="relative">
+                                            <i class="ti ti-link absolute left-3.5 top-3 text-slate-400 text-sm"></i>
+                                            <input type="url" id="submission_url" name="submission_url" value="{{ old('submission_url', $mySubmission->submission_url ?? '') }}" placeholder="https://github.com/username/repo atau tautan Google Drive" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs rounded-xl pl-10 pr-3 py-2.5 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500">
+                                        </div>
+                                        @error('submission_url')
+                                            <p class="text-rose-500 text-[11px] mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Notes -->
+                                    <div>
+                                        <label for="notes" class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
+                                            Catatan Tambahan untuk Mentor (Opsional)
+                                        </label>
+                                        <textarea id="notes" name="notes" rows="3" placeholder="Tuliskan catatan singkat mengenai cara menjalankan kode atau rincian hasil pengerjaan..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs rounded-xl px-3.5 py-2.5 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500">{{ old('notes', $mySubmission->notes ?? '') }}</textarea>
+                                        @error('notes')
+                                            <p class="text-rose-500 text-[11px] mt-1">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Submit Button -->
+                                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
+                                        @if($mySubmission && $mySubmission->isGraded() && !$mySubmission->isRevisionNeeded())
+                                            <button type="button" @click="showUploadForm = false" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl transition">
+                                                Batal
+                                            </button>
+                                        @endif
+                                        <button type="submit" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-semibold text-xs rounded-xl shadow-sm shadow-indigo-500/25 transition active:scale-95">
+                                            <i class="ti ti-send text-sm"></i>
+                                            <span>{{ $mySubmission ? ($mySubmission->isRevisionNeeded() ? 'Kirim Berkas Revisi' : 'Perbarui Pengumpulan') : 'Kirim Tugas Sekarang' }}</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            @endif
+                        </div>
                     </div>
                 </div>
             </div>

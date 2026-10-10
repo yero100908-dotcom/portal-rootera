@@ -54,6 +54,34 @@
         currentScore: 85,
         currentFeedback: '',
         currentStatus: 'graded',
+        isSavingGrade: false,
+        gradeError: '',
+        async submitGrade(event) {
+            if (!this.currentSubId) return;
+            this.isSavingGrade = true;
+            this.gradeError = '';
+            try {
+                const formData = new FormData(event.target);
+                const response = await fetch('/submissions/' + this.currentSubId + '/grade', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    this.openGradeModal = false;
+                    window.location.reload();
+                } else {
+                    this.gradeError = data.message || 'Gagal menyimpan nilai. Silakan coba lagi.';
+                    this.isSavingGrade = false;
+                }
+            } catch (err) {
+                event.target.submit();
+            }
+        },
         openExtendModal: false,
         extendUserId: null,
         extendUserName: '',
@@ -583,8 +611,14 @@
                     </button>
                 </div>
 
-                <form method="POST" :action="'/submissions/' + currentSubId + '/grade'" class="space-y-4">
+                <form method="POST" :action="'/submissions/' + currentSubId + '/grade'" @submit.prevent="submitGrade($event)" class="space-y-4">
                     @csrf
+
+                    <div x-show="gradeError" class="p-3 bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-400 rounded-xl text-xs flex items-center gap-2" x-cloak>
+                        <i class="ti ti-alert-circle text-base shrink-0"></i>
+                        <span x-text="gradeError"></span>
+                    </div>
+
                     <div>
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                             Nilai / Skor Tugas (0 - 100) <span class="text-rose-500">*</span>
@@ -624,9 +658,9 @@
                         <button type="button" @click="openGradeModal = false" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl transition">
                             Batal
                         </button>
-                        <button type="submit" class="px-5 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-semibold rounded-xl shadow-xs transition active:scale-95 flex items-center gap-1.5">
-                            <i class="ti ti-device-floppy"></i>
-                            <span>Simpan Nilai</span>
+                        <button type="submit" :disabled="isSavingGrade" class="px-5 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white text-xs font-semibold rounded-xl shadow-xs transition active:scale-95 flex items-center gap-1.5 disabled:opacity-50">
+                            <span x-show="!isSavingGrade" class="flex items-center gap-1.5"><i class="ti ti-device-floppy"></i> <span>Simpan Nilai</span></span>
+                            <span x-show="isSavingGrade" class="flex items-center gap-1.5" x-cloak><i class="ti ti-loader animate-spin"></i> <span>Menyimpan...</span></span>
                         </button>
                     </div>
                 </form>

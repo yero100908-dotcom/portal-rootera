@@ -94,15 +94,20 @@ class AssignmentSubmissionController extends Controller
             'status' => 'nullable|in:submitted,graded,revision_needed',
         ]);
 
+        $status = $request->input('status', 'graded');
+        if (! in_array($status, ['graded', 'revision_needed', 'submitted'])) {
+            $status = 'graded';
+        }
+
         $submission->update([
-            'score' => $validated['score'],
+            'score' => (int) $validated['score'],
             'feedback' => $validated['feedback'] ?? null,
-            'status' => $request->input('status', 'graded'),
+            'status' => $status,
             'graded_by' => $user->id,
             'graded_at' => now(),
         ]);
 
-        if ($request->wantsJson()) {
+        if ($request->wantsJson() || $request->ajax()) {
             return response()->json([
                 'success' => true,
                 'message' => "Nilai untuk {$submission->user->name} berhasil diperbarui.",
@@ -110,7 +115,14 @@ class AssignmentSubmissionController extends Controller
             ]);
         }
 
-        return back()->with('success', "Nilai untuk {$submission->user->name} berhasil diperbarui.");
+        $referer = $request->header('referer');
+        if ($referer && str_contains($referer, route('assignments.show', $submission->assignment_id))) {
+            return redirect()->route('assignments.show', $submission->assignment_id)
+                ->with('success', "Nilai untuk {$submission->user->name} berhasil diperbarui.");
+        }
+
+        return redirect()->route('assignments.submissions', $submission->assignment_id)
+            ->with('success', "Nilai untuk {$submission->user->name} berhasil diperbarui.");
     }
 
     /**

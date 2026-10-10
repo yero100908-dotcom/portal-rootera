@@ -359,10 +359,22 @@
                                         <i class="ti ti-file-description text-sm"></i>
                                     </a>
                                 </div>
+                            @elseif(!$isManager && $mySub)
+                                @if($mySub->isGraded())
+                                    <a href="{{ route('assignments.show', $ass->id) }}" class="flex-1 px-3.5 py-2.5 sm:py-2 text-xs font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 active:scale-95 {{ $mySub->isRevisionNeeded() ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-700 dark:text-amber-400 border border-amber-500/25' : 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-700 dark:text-purple-400 border border-purple-500/25' }}">
+                                        <i class="ti {{ $mySub->isRevisionNeeded() ? 'ti-refresh' : 'ti-award' }} text-sm"></i>
+                                        <span>{{ $mySub->isRevisionNeeded() ? 'Perlu Revisi (Nilai: ' . $mySub->score . '/100)' : 'Lihat Nilai (' . $mySub->score . '/100)' }}</span>
+                                    </a>
+                                @else
+                                    <a href="{{ route('assignments.show', $ass->id) }}" class="flex-1 px-3.5 py-2.5 sm:py-2 text-xs font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 active:scale-95 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/25">
+                                        <i class="ti ti-eye text-sm"></i>
+                                        <span>{{ 'Detail & Jawaban' }}</span>
+                                    </a>
+                                @endif
                             @else
-                                <a href="{{ route('assignments.show', $ass->id) }}" class="flex-1 px-3.5 py-2.5 sm:py-2 text-xs font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 active:scale-95 {{ $mySub ? 'bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20' : 'bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white shadow-xs shadow-indigo-500/25' }}">
-                                    <i class="ti {{ $mySub ? 'ti-eye' : 'ti-upload' }}"></i>
-                                    <span>{{ $mySub ? 'Detail & Jawaban' : 'Kerjakan Sekarang' }}</span>
+                                <a href="{{ route('assignments.show', $ass->id) }}" class="flex-1 px-3.5 py-2.5 sm:py-2 text-xs font-bold rounded-xl transition text-center flex items-center justify-center gap-1.5 active:scale-95 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white shadow-xs shadow-indigo-500/25">
+                                    <i class="ti ti-upload"></i>
+                                    <span>Kerjakan Sekarang</span>
                                 </a>
                             @endif
 
