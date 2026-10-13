@@ -1,46 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
-            <div>
-                <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mb-1.5">
-                    <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition">Beranda</a>
-                    <i class="ti ti-chevron-right text-[10px]"></i>
-                    <a href="{{ route('assignments.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition">Manajemen Tugas</a>
-                    <i class="ti ti-chevron-right text-[10px]"></i>
-                    <span class="text-slate-900 dark:text-white font-medium">Rekap Tugas Bulanan</span>
-                </nav>
-                <h1 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                    <span class="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
-                        <i class="ti ti-report-analytics text-xl"></i>
-                    </span>
-                    Rekap Tugas Bulanan (Monthly Report)
-                </h1>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    Laporan kepatuhan pengumpulan tugas, analisis performa anggota tim, dan statistik penyelesaian tugas bulanan.
-                </p>
-            </div>
-
-            <!-- Action Buttons Header -->
-            <div class="flex items-center flex-wrap gap-2 print:hidden">
-                <a href="{{ route('assignments.index') }}" 
-                   class="px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-xl border border-slate-200 dark:border-slate-700 transition flex items-center gap-1.5 shadow-xs">
-                    <i class="ti ti-arrow-left text-sm"></i>
-                    <span>Kembali ke Tugas</span>
-                </a>
-
-                <button type="button" 
-                        onclick="window.print()" 
-                        class="px-3 py-2 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-xl border border-slate-200 dark:border-slate-800 transition flex items-center gap-1.5 shadow-xs">
-                    <i class="ti ti-printer text-sm"></i>
-                    <span>Cetak Rekap</span>
-                </button>
-
-                <a href="{{ route('assignments.rekap-bulanan.export', ['month' => $month, 'year' => $year]) }}" 
-                   class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl shadow-xs transition flex items-center gap-1.5">
-                    <i class="ti ti-file-spreadsheet text-base"></i>
-                    <span>Ekspor CSV / Excel</span>
-                </a>
-            </div>
+        <div class="flex items-center gap-2 min-w-0">
+            <a href="{{ route('assignments.index') }}" class="p-1 -ml-1 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white rounded-lg transition" title="Kembali ke Manajemen Tugas">
+                <i class="ti ti-arrow-left text-lg"></i>
+            </a>
+            <h2 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight truncate flex items-center gap-1.5">
+                <i class="ti ti-report-analytics text-indigo-600 dark:text-indigo-400 shrink-0"></i>
+                <span class="truncate">Rekap Tugas Bulanan</span>
+            </h2>
         </div>
     </x-slot>
 
@@ -53,6 +20,43 @@
             this.modalOpen = true;
         }
     }">
+
+        <!-- Page Hero Banner -->
+        <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
+            <div class="space-y-1">
+                <nav class="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+                    <a href="{{ route('dashboard') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition">Beranda</a>
+                    <i class="ti ti-chevron-right text-[10px]"></i>
+                    <a href="{{ route('assignments.index') }}" class="hover:text-indigo-600 dark:hover:text-indigo-400 transition">Manajemen Tugas</a>
+                    <i class="ti ti-chevron-right text-[10px]"></i>
+                    <span class="text-slate-900 dark:text-white font-medium">Rekap Bulanan</span>
+                </nav>
+                <h1 class="text-base sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                    <span class="p-1.5 rounded-lg bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
+                        <i class="ti ti-report-analytics text-lg"></i>
+                    </span>
+                    <span>Rekap Tugas Bulanan (Monthly Report)</span>
+                </h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 max-w-2xl">
+                    Laporan kepatuhan pengumpulan tugas, analisis performa anggota tim, dan statistik penyelesaian tugas bulanan.
+                </p>
+            </div>
+
+            <div class="flex items-center flex-wrap gap-2 shrink-0">
+                <button type="button" 
+                        onclick="window.print()" 
+                        class="flex-1 sm:flex-initial px-3.5 py-2.5 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs rounded-xl border border-slate-200 dark:border-slate-800 transition flex items-center justify-center gap-1.5 shadow-xs">
+                    <i class="ti ti-printer text-sm"></i>
+                    <span>Cetak</span>
+                </button>
+
+                <a href="{{ route('assignments.rekap-bulanan.export', ['month' => $month, 'year' => $year]) }}" 
+                   class="flex-1 sm:flex-initial px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5">
+                    <i class="ti ti-file-spreadsheet text-base"></i>
+                    <span>Ekspor CSV / Excel</span>
+                </a>
+            </div>
+        </div>
 
         <!-- Filter Periode Bar -->
         <div class="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xs transition-colors duration-200 print:hidden">

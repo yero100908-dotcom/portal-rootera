@@ -37,7 +37,7 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-2 shrink-0 w-full sm:w-auto">
-                    @if(Auth::user()->isOwner() || Auth::user()->isAdmin())
+                    @if(Auth::user()->canManageOfficeLocation())
                         <button @click="setMyLocationAsOffice()" :disabled="!userLat || settingLocation" 
                                 class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:bg-slate-300 dark:disabled:bg-slate-800 disabled:opacity-50 text-white text-xs font-semibold rounded-lg shadow-sm transition flex items-center gap-1.5">
                             <i class="ti ti-map-pin text-sm"></i>
@@ -51,8 +51,8 @@
                 </div>
             </div>
 
-            <!-- Admin Geofence Options Bar -->
-            @if(Auth::user()->isOwner() || Auth::user()->isAdmin())
+            <!-- Manager Geofence Options Bar (Khusus Owner & Mentor) -->
+            @if(Auth::user()->canManageOfficeLocation())
                 <div class="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800/60 flex flex-wrap items-center justify-between text-[11px] text-slate-600 dark:text-slate-400 gap-2">
                     <div class="flex items-center gap-2">
                         <span class="font-mono text-slate-700 dark:text-slate-300">Titik Kantor Saat Ini: <b class="text-slate-900 dark:text-white" x-text="officeLat + ', ' + officeLng"></b> (Radius: <b class="text-indigo-600 dark:text-indigo-400" x-text="maxRadius + 'm'"></b>)</span>
@@ -60,7 +60,7 @@
 
                     <label class="inline-flex items-center gap-2 cursor-pointer text-slate-700 dark:text-slate-300 font-medium">
                         <input type="checkbox" x-model="bypassGeofence" class="rounded bg-slate-50 dark:bg-slate-950 border-slate-300 dark:border-slate-800 text-indigo-600 focus:ring-indigo-500">
-                        <span>Bypass Geofence (Mode Dev/Override Admin)</span>
+                        <span>Bypass Geofence (Mode Dev/Override Khusus)</span>
                     </label>
                 </div>
             @endif
@@ -106,7 +106,7 @@
                     </div>
                     
                     <div class="flex items-center gap-2 pt-1">
-                        @if(Auth::user()->isOwner() || Auth::user()->isAdmin())
+                        @if(Auth::user()->canManageOfficeLocation())
                             <button @click="setMyLocationAsOffice()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-lg shadow-sm transition">
                                 <i class="ti ti-map-pin me-1"></i> Atur Lokasi Ini Sebagai Kantor
                             </button>

@@ -17,7 +17,7 @@ class AssignmentTest extends TestCase
     {
         Storage::fake('public');
 
-        $manager = User::factory()->create(['role' => 'admin']);
+        $manager = User::factory()->create(['role' => 'mentor']);
 
         $response = $this->actingAs($manager)->post(route('assignments.store'), [
             'title' => 'Tugas Test UI Design',
@@ -32,6 +32,19 @@ class AssignmentTest extends TestCase
             'title' => 'Tugas Test UI Design',
             'created_by' => $manager->id,
         ]);
+    }
+
+    public function test_admin_cannot_create_assignment(): void
+    {
+        $admin = User::factory()->create(['role' => 'admin']);
+
+        $response = $this->actingAs($admin)->post(route('assignments.store'), [
+            'title' => 'Tugas Percobaan Admin',
+            'description' => 'Deskripsi',
+            'deadline' => now()->addDays(2)->format('Y-m-d H:i:s'),
+        ]);
+
+        $response->assertStatus(403);
     }
 
     public function test_employee_cannot_create_assignment(): void
@@ -137,7 +150,7 @@ class AssignmentTest extends TestCase
     {
         $employee = User::factory()->create(['role' => 'karyawan']);
         $anotherEmployee = User::factory()->create(['role' => 'karyawan']);
-        $manager = User::factory()->create(['role' => 'admin']);
+        $manager = User::factory()->create(['role' => 'mentor']);
 
         $assignment = Assignment::create([
             'title' => 'Tugas Khusus',
@@ -219,7 +232,7 @@ class AssignmentTest extends TestCase
 
     public function test_overdue_assignment_does_not_appear_in_pending_tab(): void
     {
-        $manager = User::factory()->create(['role' => 'admin']);
+        $manager = User::factory()->create(['role' => 'mentor']);
         $employee = User::factory()->create(['role' => 'karyawan']);
 
         $overdueAssignment = Assignment::create([

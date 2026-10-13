@@ -1,33 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 w-full">
-            <div class="min-w-0">
-                <div class="flex items-center gap-2 mb-1.5">
-                    <a href="{{ route('assignments.index') }}" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-white bg-slate-100 dark:bg-slate-800/80 transition group">
-                        <i class="ti ti-arrow-left group-hover:-translate-x-0.5 transition-transform"></i>
-                        <span>Kembali ke Tugas</span>
-                    </a>
-                </div>
-                <h1 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight truncate flex items-center gap-2">
-                    <span class="truncate">{{ $assignment->title }}</span>
-                </h1>
-            </div>
-            @if($isManager)
-                <div class="flex items-center gap-2 shrink-0">
-                    <a href="{{ route('assignments.edit', $assignment->id) }}" class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs rounded-xl border border-slate-200/80 dark:border-slate-700 transition">
-                        <i class="ti ti-edit text-sm"></i>
-                        <span>Edit Tugas</span>
-                    </a>
-
-                    <form method="POST" action="{{ route('assignments.destroy', $assignment->id) }}" onsubmit="return confirm('Hapus tugas ini beserta seluruh pengumpulannya?')">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="p-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-semibold rounded-xl border border-rose-500/20 transition flex items-center justify-center">
-                            <i class="ti ti-trash text-sm"></i>
-                        </button>
-                    </form>
-                </div>
-            @endif
+        <div class="flex items-center gap-2 min-w-0">
+            <a href="{{ route('assignments.index') }}" class="p-1 -ml-1 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white rounded-lg transition" title="Kembali ke Manajemen Tugas">
+                <i class="ti ti-arrow-left text-lg"></i>
+            </a>
+            <h2 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight truncate flex items-center gap-1.5">
+                <i class="ti ti-file-text text-indigo-600 dark:text-indigo-400 shrink-0"></i>
+                <span class="truncate">{{ $assignment->title }}</span>
+            </h2>
         </div>
     </x-slot>
 
@@ -80,7 +60,7 @@
 
                             <span class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
                                 <i class="ti ti-user-circle text-sm text-indigo-500"></i>
-                                <span>Dibuat oleh: <strong class="text-slate-700 dark:text-slate-200 font-semibold">{{ $assignment->creator->name ?? 'Admin' }}</strong></span>
+                                <span>Dibuat oleh: <strong class="text-slate-700 dark:text-slate-200 font-semibold">{{ $assignment->creator->name ?? 'Mentor' }}</strong></span>
                             </span>
                         </div>
                         <h2 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white leading-snug">
@@ -89,20 +69,36 @@
                     </div>
                 </div>
 
-                <!-- Deadline Badge -->
-                <div class="bg-slate-50 dark:bg-slate-950/80 px-4 py-3 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 flex items-center gap-3 shrink-0">
-                    <div class="w-9 h-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-lg shrink-0">
-                        <i class="ti ti-calendar-time"></i>
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 shrink-0">
+                    <!-- Deadline Badge -->
+                    <div class="bg-slate-50 dark:bg-slate-950/80 px-4 py-2.5 rounded-2xl border border-slate-200/80 dark:border-slate-800/80 flex items-center gap-3 shrink-0">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-base shrink-0">
+                            <i class="ti ti-calendar-time"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tenggat Waktu (Deadline)</p>
+                            <p class="text-xs sm:text-sm font-bold font-mono {{ $assignment->isOverdue() ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white' }}">
+                                {{ $assignment->deadline->format('d M Y, H:i') }} WIB
+                            </p>
+                        </div>
                     </div>
-                    <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Tenggat Waktu (Deadline)</p>
-                        <p class="text-xs sm:text-sm font-bold font-mono {{ $assignment->isOverdue() ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white' }}">
-                            {{ $assignment->deadline->format('d M Y, H:i') }} WIB
-                        </p>
-                        <p class="text-[10px] font-medium {{ $assignment->isOverdue() ? 'text-rose-500' : 'text-emerald-500' }}">
-                            {{ $assignment->isOverdue() ? 'Lewat ' . $assignment->deadline->diffForHumans() : 'Sisa ' . $assignment->deadline->diffForHumans(null, true) }}
-                        </p>
-                    </div>
+
+                    @if($isManager)
+                        <div class="flex items-center gap-2 shrink-0">
+                            <a href="{{ route('assignments.edit', $assignment->id) }}" class="flex-1 sm:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs rounded-xl border border-slate-200/80 dark:border-slate-700 transition">
+                                <i class="ti ti-edit text-sm"></i>
+                                <span>Edit Tugas</span>
+                            </a>
+
+                            <form method="POST" action="{{ route('assignments.destroy', $assignment->id) }}" onsubmit="return confirm('Hapus tugas ini beserta seluruh pengumpulannya?')" class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" title="Hapus Tugas" class="p-2.5 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 text-xs font-semibold rounded-xl border border-rose-500/20 transition flex items-center justify-center">
+                                    <i class="ti ti-trash text-sm"></i>
+                                </button>
+                            </form>
+                        </div>
+                    @endif
                 </div>
             </div>
 
@@ -803,9 +799,9 @@
                                     </div>
 
                                     <!-- Submit Button -->
-                                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
+                                    <div class="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col-reverse sm:flex-row items-center justify-end gap-2.5">
                                         @if($mySubmission && $mySubmission->isGraded() && !$mySubmission->isRevisionNeeded())
-                                            <button type="button" @click="showUploadForm = false" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl transition">
+                                            <button type="button" @click="showUploadForm = false" class="w-full sm:w-auto px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-semibold rounded-xl transition text-center">
                                                 Batal
                                             </button>
                                         @endif

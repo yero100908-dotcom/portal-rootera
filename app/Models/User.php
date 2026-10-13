@@ -126,7 +126,12 @@ class User extends Authenticatable
 
     public function canManageAssignments(): bool
     {
-        return $this->isOwner() || $this->isAdmin() || $this->isMentor() || $this->hasAnyRole(['owner', 'admin', 'mentor']);
+        return $this->isOwner() || $this->isMentor() || $this->hasAnyRole(['owner', 'mentor']);
+    }
+
+    public function canManageOfficeLocation(): bool
+    {
+        return $this->isOwner() || $this->isMentor() || $this->hasAnyRole(['owner', 'mentor']);
     }
 
     public function canManageOrders(): bool

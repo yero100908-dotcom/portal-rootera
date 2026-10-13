@@ -1,22 +1,27 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
-            <div>
-                <h1 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Order Book & Pesanan Klien</h1>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manajemen order transaksi, rincian item, komisi sales, dan status pelunasan</p>
-            </div>
-            <div class="flex items-center gap-2">
-                <a href="{{ route('orders.recap') }}" class="px-3.5 py-1.5 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 font-semibold text-xs rounded-lg border border-indigo-500/20 transition flex items-center gap-1.5">
-                    <i class="ti ti-file-analytics text-base"></i> Rekap Bulanan & Komisi
-                </a>
-                <a href="{{ route('orders.create') }}" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-lg shadow-sm transition flex items-center gap-1.5">
-                    <i class="ti ti-plus text-base"></i> Input Order Baru
-                </a>
-            </div>
-        </div>
+        <h2 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight truncate flex items-center gap-2">
+            <i class="ti ti-shopping-cart text-indigo-600 dark:text-indigo-400 shrink-0"></i>
+            <span class="truncate">Order Book & Pesanan</span>
+        </h2>
     </x-slot>
 
     <div class="space-y-6">
+        <!-- Page Hero Banner -->
+        <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-base sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">Order Book & Pesanan Klien</h1>
+                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Manajemen order transaksi, rincian item, komisi sales, dan status pelunasan</p>
+            </div>
+            <div class="flex items-center flex-wrap gap-2 shrink-0">
+                <a href="{{ route('orders.recap') }}" class="flex-1 sm:flex-initial px-3.5 py-2.5 bg-indigo-600/10 hover:bg-indigo-600/20 text-indigo-600 dark:text-indigo-400 font-semibold text-xs rounded-xl border border-indigo-500/20 transition flex items-center justify-center gap-1.5">
+                    <i class="ti ti-file-analytics text-base"></i> Rekap & Komisi
+                </a>
+                <a href="{{ route('orders.create') }}" class="flex-1 sm:flex-initial px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5">
+                    <i class="ti ti-plus text-base"></i> Input Order
+                </a>
+            </div>
+        </div>
         <!-- Search & Filter Card -->
         <div class="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-xl p-4 sm:p-5 shadow-sm transition-colors duration-200">
             <form method="GET" action="{{ route('orders.index') }}" class="flex flex-col sm:flex-row gap-3">

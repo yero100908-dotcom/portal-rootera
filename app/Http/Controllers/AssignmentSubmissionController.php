@@ -16,7 +16,7 @@ class AssignmentSubmissionController extends Controller
     public function store(Request $request, Assignment $assignment)
     {
         if (Auth::user()->canManageAssignments()) {
-            return back()->with('error', 'Owner, Mentor, dan Admin adalah pembuat tugas dan tidak mengumpulkan jawaban.');
+            return back()->with('error', 'Owner dan Mentor adalah pembuat tugas dan tidak mengumpulkan jawaban.');
         }
 
         if (! $assignment->is_active) {

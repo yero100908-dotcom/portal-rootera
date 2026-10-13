@@ -1,63 +1,69 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 w-full">
-            <div>
-                <div class="flex items-center gap-2 mb-1">
+        <h2 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight truncate flex items-center gap-2">
+            <i class="ti ti-notebook text-indigo-600 dark:text-indigo-400"></i>
+            <span>Manajemen Tugas</span>
+        </h2>
+    </x-slot>
+
+    <div class="space-y-4 sm:space-y-6" x-data="{ submitModalAssignment: null, selectedFileName: '', selectedFileSize: '' }">
+        
+        <!-- Page Hero Banner (In-flow Page Body) -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/80 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xs">
+            <div class="space-y-1">
+                <div class="flex items-center gap-2">
                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20">
                         <i class="ti ti-sparkles text-xs"></i> Tugas & Penugasan
                     </span>
                 </div>
-                <h1 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                    <i class="ti ti-notebook text-indigo-600 dark:text-indigo-400"></i>
+                <h1 class="text-base sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
                     Manajemen Tugas (Assignment)
                 </h1>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    Modul instruksi tugas tim, unggah file tugas, repositori, dan rekapitulasi penilaian
+                <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-2xl">
+                    Modul instruksi tugas tim, unggah berkas submission, repositori, dan rekapitulasi penilaian.
                 </p>
             </div>
             @if($isManager)
-                <div class="shrink-0">
-                    <a href="{{ route('assignments.create') }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-semibold text-xs rounded-xl shadow-sm shadow-indigo-500/25 transition-all transform active:scale-95">
+                <div class="shrink-0 pt-1 sm:pt-0">
+                    <a href="{{ route('assignments.create') }}" class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-semibold text-xs rounded-xl shadow-sm shadow-indigo-500/25 transition-all transform active:scale-95 touch-target">
                         <i class="ti ti-plus text-base"></i>
                         <span>Buat Tugas Baru</span>
                     </a>
                 </div>
             @endif
         </div>
-    </x-slot>
 
-    <div class="space-y-5 sm:space-y-6" x-data="{ submitModalAssignment: null, selectedFileName: '', selectedFileSize: '' }">
         <!-- Flash Alert Messages -->
         @if(session('success'))
-            <div class="p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 rounded-2xl text-xs font-semibold flex items-center justify-between shadow-xs">
-                <div class="flex items-center gap-2.5">
+            <div class="p-3.5 sm:p-4 bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-400 rounded-2xl text-xs font-semibold flex items-center justify-between shadow-xs">
+                <div class="flex items-center gap-2.5 min-w-0">
                     <div class="w-7 h-7 rounded-lg bg-emerald-500/20 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shrink-0">
                         <i class="ti ti-circle-check text-base"></i>
                     </div>
-                    <span>{{ session('success') }}</span>
+                    <span class="truncate">{{ session('success') }}</span>
                 </div>
             </div>
         @endif
 
         @if(session('error'))
-            <div class="p-4 bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-400 rounded-2xl text-xs font-semibold flex items-center justify-between shadow-xs">
-                <div class="flex items-center gap-2.5">
+            <div class="p-3.5 sm:p-4 bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-400 rounded-2xl text-xs font-semibold flex items-center justify-between shadow-xs">
+                <div class="flex items-center gap-2.5 min-w-0">
                     <div class="w-7 h-7 rounded-lg bg-rose-500/20 flex items-center justify-center text-rose-600 dark:text-rose-400 shrink-0">
                         <i class="ti ti-alert-circle text-base"></i>
                     </div>
-                    <span>{{ session('error') }}</span>
+                    <span class="truncate">{{ session('error') }}</span>
                 </div>
             </div>
         @endif
 
-        <!-- Responsive Stats Overview Cards (2-col mobile, 4-col desktop) -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4.5">
+        <!-- Responsive Stats Overview Cards (2-col on mobile, 4-col on desktop) -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
             @if($isManager)
                 <!-- Manager Metric 1: Total Tugas -->
-                <div class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-indigo-500/30 transition-all duration-200 group">
-                    <div class="flex items-center justify-between gap-2 mb-2 sm:mb-3">
-                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Total Tugas</span>
-                        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-base sm:text-lg shrink-0 group-hover:scale-105 transition-transform">
+                <div class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3 sm:p-4.5 shadow-xs hover:border-indigo-500/30 transition-all duration-200 group flex flex-col justify-between">
+                    <div class="flex items-center justify-between gap-1.5 mb-2 sm:mb-3">
+                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight sm:tracking-wider truncate">Total Tugas</span>
+                        <div class="w-7 h-7 sm:w-8.5 sm:h-8.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm sm:text-base shrink-0 group-hover:scale-105 transition-transform">
                             <i class="ti ti-files"></i>
                         </div>
                     </div>
@@ -68,24 +74,24 @@
                 </div>
 
                 <!-- Manager Metric 2: Tugas Aktif -->
-                <div class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-emerald-500/30 transition-all duration-200 group">
-                    <div class="flex items-center justify-between gap-2 mb-2 sm:mb-3">
-                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Tugas Aktif</span>
-                        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-base sm:text-lg shrink-0 group-hover:scale-105 transition-transform">
+                <div class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3 sm:p-4.5 shadow-xs hover:border-emerald-500/30 transition-all duration-200 group flex flex-col justify-between">
+                    <div class="flex items-center justify-between gap-1.5 mb-2 sm:mb-3">
+                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight sm:tracking-wider truncate">Tugas Aktif</span>
+                        <div class="w-7 h-7 sm:w-8.5 sm:h-8.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 flex items-center justify-center text-sm sm:text-base shrink-0 group-hover:scale-105 transition-transform">
                             <i class="ti ti-clock-play"></i>
                         </div>
                     </div>
                     <div class="flex items-baseline gap-1.5">
                         <h3 class="text-xl sm:text-2xl font-extrabold text-emerald-600 dark:text-emerald-400 tracking-tight">{{ $activeAssignments }}</h3>
-                        <span class="text-[10px] text-emerald-500 font-medium">sedang berjalan</span>
+                        <span class="text-[10px] text-emerald-500 font-medium">berjalan</span>
                     </div>
                 </div>
 
                 <!-- Manager Metric 3: Pengumpulan Karyawan -->
-                <div class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-blue-500/30 transition-all duration-200 group">
-                    <div class="flex items-center justify-between gap-2 mb-2 sm:mb-3">
-                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Jawaban Masuk</span>
-                        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-base sm:text-lg shrink-0 group-hover:scale-105 transition-transform">
+                <div class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3 sm:p-4.5 shadow-xs hover:border-blue-500/30 transition-all duration-200 group flex flex-col justify-between">
+                    <div class="flex items-center justify-between gap-1.5 mb-2 sm:mb-3">
+                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight sm:tracking-wider truncate">Jawaban Masuk</span>
+                        <div class="w-7 h-7 sm:w-8.5 sm:h-8.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm sm:text-base shrink-0 group-hover:scale-105 transition-transform">
                             <i class="ti ti-inbox"></i>
                         </div>
                     </div>
@@ -96,10 +102,10 @@
                 </div>
 
                 <!-- Manager Metric 4: Jawaban Dinilai -->
-                <div class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-amber-500/30 transition-all duration-200 group">
-                    <div class="flex items-center justify-between gap-2 mb-2 sm:mb-3">
-                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Sudah Dinilai</span>
-                        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-base sm:text-lg shrink-0 group-hover:scale-105 transition-transform">
+                <div class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3 sm:p-4.5 shadow-xs hover:border-amber-500/30 transition-all duration-200 group flex flex-col justify-between">
+                    <div class="flex items-center justify-between gap-1.5 mb-2 sm:mb-3">
+                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight sm:tracking-wider truncate">Sudah Dinilai</span>
+                        <div class="w-7 h-7 sm:w-8.5 sm:h-8.5 rounded-xl bg-amber-500/10 text-amber-600 dark:text-amber-400 flex items-center justify-center text-sm sm:text-base shrink-0 group-hover:scale-105 transition-transform">
                             <i class="ti ti-award"></i>
                         </div>
                     </div>
@@ -110,10 +116,10 @@
                 </div>
             @else
                 <!-- Employee Metric 1: Tugas Belum Dikumpul -->
-                <div class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-indigo-500/30 transition-all duration-200 group">
-                    <div class="flex items-center justify-between gap-2 mb-2 sm:mb-3">
-                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Belum Kumpul</span>
-                        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl {{ $myPendingCount == 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400' }} flex items-center justify-center text-base sm:text-lg shrink-0 group-hover:scale-105 transition-transform">
+                <div class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3 sm:p-4.5 shadow-xs hover:border-indigo-500/30 transition-all duration-200 group flex flex-col justify-between">
+                    <div class="flex items-center justify-between gap-1.5 mb-2 sm:mb-3">
+                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight sm:tracking-wider truncate">Belum Kumpul</span>
+                        <div class="w-7 h-7 sm:w-8.5 sm:h-8.5 rounded-xl {{ $myPendingCount == 0 ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' : 'bg-rose-500/10 text-rose-600 dark:text-rose-400' }} flex items-center justify-center text-sm sm:text-base shrink-0 group-hover:scale-105 transition-transform">
                             <i class="ti {{ $myPendingCount == 0 ? 'ti-check' : 'ti-alert-triangle' }}"></i>
                         </div>
                     </div>
@@ -121,49 +127,49 @@
                         <h3 class="text-xl sm:text-2xl font-extrabold {{ $myPendingCount == 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400' }} tracking-tight">
                             {{ $myPendingCount }}
                         </h3>
-                        <span class="text-[10px] text-slate-400 font-medium">tugas</span>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">tugas</span>
                     </div>
                 </div>
 
-                <!-- Employee Metric 2: Sudah Dikumpul -->
-                <div class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-blue-500/30 transition-all duration-200 group">
-                    <div class="flex items-center justify-between gap-2 mb-2 sm:mb-3">
-                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Sudah Dikumpul</span>
-                        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-base sm:text-lg shrink-0 group-hover:scale-105 transition-transform">
+                <!-- Employee Metric 2: Sudah Dikumpul (No truncation!) -->
+                <div class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3 sm:p-4.5 shadow-xs hover:border-blue-500/30 transition-all duration-200 group flex flex-col justify-between">
+                    <div class="flex items-center justify-between gap-1.5 mb-2 sm:mb-3">
+                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight sm:tracking-wider truncate">Sudah Kumpul</span>
+                        <div class="w-7 h-7 sm:w-8.5 sm:h-8.5 rounded-xl bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-sm sm:text-base shrink-0 group-hover:scale-105 transition-transform">
                             <i class="ti ti-circle-check"></i>
                         </div>
                     </div>
                     <div class="flex items-baseline gap-1.5">
                         <h3 class="text-xl sm:text-2xl font-extrabold text-blue-600 dark:text-blue-400 tracking-tight">{{ $mySubmittedCount }}</h3>
-                        <span class="text-[10px] text-slate-400 font-medium">selesai</span>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">selesai</span>
                     </div>
                 </div>
 
                 <!-- Employee Metric 3: Nilai Selesai -->
-                <div class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-purple-500/30 transition-all duration-200 group">
-                    <div class="flex items-center justify-between gap-2 mb-2 sm:mb-3">
-                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Telah Dinilai</span>
-                        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-base sm:text-lg shrink-0 group-hover:scale-105 transition-transform">
+                <div class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3 sm:p-4.5 shadow-xs hover:border-purple-500/30 transition-all duration-200 group flex flex-col justify-between">
+                    <div class="flex items-center justify-between gap-1.5 mb-2 sm:mb-3">
+                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight sm:tracking-wider truncate">Telah Dinilai</span>
+                        <div class="w-7 h-7 sm:w-8.5 sm:h-8.5 rounded-xl bg-purple-500/10 text-purple-600 dark:text-purple-400 flex items-center justify-center text-sm sm:text-base shrink-0 group-hover:scale-105 transition-transform">
                             <i class="ti ti-award"></i>
                         </div>
                     </div>
                     <div class="flex items-baseline gap-1.5">
                         <h3 class="text-xl sm:text-2xl font-extrabold text-purple-600 dark:text-purple-400 tracking-tight">{{ $myGradedCount }}</h3>
-                        <span class="text-[10px] text-slate-400 font-medium">diberi skor</span>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">diberi skor</span>
                     </div>
                 </div>
 
                 <!-- Employee Metric 4: Total Tugas Aktif -->
-                <div class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-indigo-500/30 transition-all duration-200 group">
-                    <div class="flex items-center justify-between gap-2 mb-2 sm:mb-3">
-                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider truncate">Tugas Aktif</span>
-                        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-base sm:text-lg shrink-0 group-hover:scale-105 transition-transform">
+                <div class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3 sm:p-4.5 shadow-xs hover:border-indigo-500/30 transition-all duration-200 group flex flex-col justify-between">
+                    <div class="flex items-center justify-between gap-1.5 mb-2 sm:mb-3">
+                        <span class="text-[10px] sm:text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-tight sm:tracking-wider truncate">Tugas Aktif</span>
+                        <div class="w-7 h-7 sm:w-8.5 sm:h-8.5 rounded-xl bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 flex items-center justify-center text-sm sm:text-base shrink-0 group-hover:scale-105 transition-transform">
                             <i class="ti ti-files"></i>
                         </div>
                     </div>
                     <div class="flex items-baseline gap-1.5">
                         <h3 class="text-xl sm:text-2xl font-extrabold text-indigo-600 dark:text-indigo-400 tracking-tight">{{ $activeAssignments }}</h3>
-                        <span class="text-[10px] text-slate-400 font-medium">periode aktif</span>
+                        <span class="text-[10px] text-slate-400 font-medium truncate">periode aktif</span>
                     </div>
                 </div>
             @endif
@@ -171,18 +177,18 @@
 
         @if(!$isManager)
             <!-- Responsive Mobile-Friendly Scrollable Segmented Tabs for Employee -->
-            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 -mx-1 px-1">
-                <a href="{{ route('assignments.index', ['tab' => 'pending']) }}" class="shrink-0 inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 text-xs font-bold rounded-xl transition shadow-xs {{ $submissionFilter === 'pending' ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-indigo-500/25' : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 -mx-3 px-3 sm:mx-0 sm:px-0">
+                <a href="{{ route('assignments.index', ['tab' => 'pending']) }}" class="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 text-xs font-bold rounded-xl transition shadow-xs {{ $submissionFilter === 'pending' ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-indigo-500/25' : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">
                     <i class="ti ti-clock"></i>
-                    <span>Belum Dikumpul</span>
+                    <span>Belum Kumpul</span>
                     <span class="px-1.5 py-0.5 text-[10px] font-extrabold rounded-full {{ $submissionFilter === 'pending' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300' }}">{{ $myPendingCount }}</span>
                 </a>
-                <a href="{{ route('assignments.index', ['tab' => 'submitted']) }}" class="shrink-0 inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 text-xs font-bold rounded-xl transition shadow-xs {{ $submissionFilter === 'submitted' ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-indigo-500/25' : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">
+                <a href="{{ route('assignments.index', ['tab' => 'submitted']) }}" class="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 text-xs font-bold rounded-xl transition shadow-xs {{ $submissionFilter === 'submitted' ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-indigo-500/25' : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">
                     <i class="ti ti-circle-check"></i>
-                    <span>Riwayat Pengumpulan</span>
+                    <span>Riwayat</span>
                     <span class="px-1.5 py-0.5 text-[10px] font-extrabold rounded-full {{ $submissionFilter === 'submitted' ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300' }}">{{ $mySubmittedCount }}</span>
                 </a>
-                <a href="{{ route('assignments.index', ['tab' => 'all']) }}" class="shrink-0 inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 text-xs font-bold rounded-xl transition shadow-xs {{ $submissionFilter === 'all' ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-indigo-500/25' : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">
+                <a href="{{ route('assignments.index', ['tab' => 'all']) }}" class="shrink-0 inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-4 py-2 text-xs font-bold rounded-xl transition shadow-xs {{ $submissionFilter === 'all' ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white shadow-indigo-500/25' : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white' }}">
                     <i class="ti ti-list"></i>
                     <span>Semua Tugas</span>
                 </a>
@@ -190,15 +196,15 @@
         @endif
 
         <!-- Search & Filter Controls -->
-        <div class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3.5 sm:p-4 shadow-xs">
+        <div class="bg-white/85 dark:bg-slate-900/85 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-3 sm:p-4 shadow-xs">
             <form method="GET" action="{{ route('assignments.index') }}" class="flex flex-col sm:flex-row gap-2.5 sm:gap-3">
                 <input type="hidden" name="tab" value="{{ $submissionFilter }}">
                 <div class="flex-1 relative">
-                    <i class="ti ti-search absolute left-3.5 top-3 text-slate-400 text-sm"></i>
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari judul tugas, instruksi, atau kata kunci..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs rounded-xl pl-10 pr-3 py-2.5 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition">
+                    <i class="ti ti-search absolute left-3.5 top-3.5 text-slate-400 text-sm"></i>
+                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari judul tugas atau materi..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-base sm:text-xs rounded-xl pl-10 pr-3 py-2.5 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition">
                 </div>
                 <div class="w-full sm:w-48">
-                    <select name="status" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition">
+                    <select name="status" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-base sm:text-xs rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500 transition">
                         <option value="">Semua Status</option>
                         <option value="active" {{ request('status') === 'active' ? 'selected' : '' }}>Aktif</option>
                         <option value="overdue" {{ request('status') === 'overdue' ? 'selected' : '' }}>Tenggat Lewat</option>
@@ -208,12 +214,12 @@
                     </select>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="submit" class="flex-1 sm:flex-none px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-1.5 active:scale-95">
+                    <button type="submit" class="flex-1 sm:flex-none px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl transition shadow-xs flex items-center justify-center gap-1.5 active:scale-95 touch-target sm:min-h-0">
                         <i class="ti ti-filter"></i>
                         <span>Filter</span>
                     </button>
                     @if(request('search') || request('status'))
-                        <a href="{{ route('assignments.index', ['tab' => $submissionFilter]) }}" title="Reset Filter" class="p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 transition flex items-center justify-center">
+                        <a href="{{ route('assignments.index', ['tab' => $submissionFilter]) }}" title="Reset Filter" class="touch-target sm:min-h-0 p-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-semibold rounded-xl border border-slate-200 dark:border-slate-700 transition flex items-center justify-center">
                             <i class="ti ti-rotate-clockwise text-base"></i>
                         </a>
                     @endif
@@ -236,7 +242,7 @@
                 <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-5 shadow-xs hover:shadow-lg hover:border-indigo-500/40 transition-all duration-200 flex flex-col justify-between space-y-4 group">
                     <div>
                         <!-- Header Status Badge -->
-                        <div class="flex items-center justify-between gap-2 mb-3">
+                        <div class="flex flex-wrap items-center justify-between gap-1.5 mb-3">
                             <span class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-lg border
                                 @if(!$ass->is_active) bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20
                                 @elseif(!$isManager && $hasCustomDeadline && !$isOverdueForMe) bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border-indigo-500/20
@@ -318,7 +324,7 @@
                         <div class="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 gap-2">
                             <span class="flex items-center gap-1.5 truncate">
                                 <i class="ti ti-user-circle text-sm text-indigo-500"></i>
-                                <span class="truncate">{{ $ass->creator->name ?? 'Admin' }}</span>
+                                <span class="truncate">{{ $ass->creator->name ?? 'Mentor' }}</span>
                             </span>
                             <span class="flex items-center gap-1 font-mono shrink-0 {{ $isOverdueForMe ? 'text-rose-600 dark:text-rose-400 font-semibold' : 'text-slate-600 dark:text-slate-300' }}">
                                 <i class="ti ti-calendar-time text-xs"></i>
@@ -446,7 +452,7 @@
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="opacity-100 scale-100"
                  x-transition:leave-end="opacity-0 scale-95"
-                 class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 max-w-lg w-full text-left space-y-4 shadow-2xl">
+                 class="my-auto max-h-[90dvh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 sm:p-6 max-w-lg w-full text-left space-y-4 shadow-2xl">
                 
                 <div class="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
                     <div class="flex items-center gap-2.5">
@@ -505,7 +511,7 @@
                         </label>
                         <div class="relative">
                             <i class="ti ti-link absolute left-3 top-2.5 text-slate-400 text-sm"></i>
-                            <input type="url" name="submission_url" placeholder="https://github.com/... atau link Google Drive" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs rounded-xl pl-9 pr-3 py-2 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500">
+                            <input type="url" name="submission_url" placeholder="https://github.com/... atau link Google Drive" class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-base sm:text-xs rounded-xl pl-9 pr-3 py-2.5 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500">
                         </div>
                     </div>
 
@@ -513,7 +519,7 @@
                         <label class="block text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider mb-1.5">
                             Catatan Pengerjaan (Opsional)
                         </label>
-                        <textarea name="notes" rows="2" placeholder="Catatan singkat untuk mentor..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-xs rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"></textarea>
+                        <textarea name="notes" rows="2" placeholder="Catatan singkat untuk mentor..." class="w-full bg-slate-50 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-slate-200 text-base sm:text-xs rounded-xl px-3 py-2.5 focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500"></textarea>
                     </div>
 
                     <div class="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">

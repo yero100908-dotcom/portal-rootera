@@ -1,12 +1,59 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 w-full">
-            <div class="min-w-0">
-                <div class="flex items-center gap-2 mb-1.5 flex-wrap">
-                    <a href="{{ route('assignments.index') }}" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-white bg-slate-100 dark:bg-slate-800/80 transition group">
-                        <i class="ti ti-arrow-left group-hover:-translate-x-0.5 transition-transform"></i>
-                        <span>Kembali ke Manajemen Tugas</span>
-                    </a>
+        <div class="flex items-center gap-2 min-w-0">
+            <a href="{{ route('assignments.index') }}" class="p-1 -ml-1 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white rounded-lg transition" title="Kembali ke Manajemen Tugas">
+                <i class="ti ti-arrow-left text-lg"></i>
+            </a>
+            <h2 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight truncate flex items-center gap-1.5">
+                <i class="ti ti-checklist text-indigo-600 dark:text-indigo-400 shrink-0"></i>
+                <span class="truncate">Pengecekan: {{ $assignment->title }}</span>
+            </h2>
+        </div>
+    </x-slot>
+
+    <div class="space-y-5 sm:space-y-6" x-data="{ 
+        activeTab: 'all', 
+        searchQuery: '',
+        openGradeModal: false, 
+        currentSubId: null,
+        currentUserName: '',
+        currentScore: 85,
+        currentFeedback: '',
+        currentStatus: 'graded',
+        isSavingGrade: false,
+        gradeError: '',
+        async submitGrade(event) {
+            if (!this.currentSubId) return;
+            this.isSavingGrade = true;
+            this.gradeError = '';
+            try {
+                const formData = new FormData(event.target);
+                const response = await fetch('/submissions/' + this.currentSubId + '/grade', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json'
+                    },
+                    body: formData
+                });
+                const data = await response.json();
+                if (response.ok && data.success) {
+                    window.location.reload();
+                } else {
+                    this.gradeError = data.message || 'Gagal menyimpan penilaian.';
+                }
+            } catch (err) {
+                this.gradeError = 'Terjadi kesalahan sistem.';
+            } finally {
+                this.isSavingGrade = false;
+            }
+        }
+    }">
+
+        <!-- Page Hero Banner -->
+        <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+            <div class="space-y-1.5 min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
                     <span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-indigo-500/10 text-indigo-700 dark:text-indigo-400 border border-indigo-500/20">
                         <i class="ti ti-checklist text-xs"></i> Pengecekan Tugas & Riwayat
                     </span>
@@ -23,31 +70,25 @@
                         @else Aktif @endif
                     </span>
                 </div>
-                <h1 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2 truncate">
-                    <i class="ti ti-notebook text-indigo-600 dark:text-indigo-400 shrink-0"></i>
-                    <span class="truncate">{{ $assignment->title }}</span>
+                <h1 class="text-base sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug">
+                    {{ $assignment->title }}
                 </h1>
-                <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                <p class="text-xs text-slate-500 dark:text-slate-400">
                     Dibuat oleh <strong class="text-slate-700 dark:text-slate-200 font-semibold">{{ $assignment->creator->name ?? 'Mentor' }}</strong> &bull; Tenggat: <span class="font-mono font-semibold {{ $assignment->isOverdue() ? 'text-rose-600 dark:text-rose-400' : 'text-slate-700 dark:text-slate-300' }}">{{ $assignment->deadline->format('d M Y, H:i') }} WIB</span>
                 </p>
             </div>
 
-            <div class="flex items-center gap-2 shrink-0">
-                <a href="{{ route('assignments.show', $assignment->id) }}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs rounded-xl border border-slate-200/80 dark:border-slate-700 transition">
+            <div class="flex items-center gap-2 shrink-0 pt-1 md:pt-0">
+                <a href="{{ route('assignments.show', $assignment->id) }}" class="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs rounded-xl border border-slate-200/80 dark:border-slate-700 transition">
                     <i class="ti ti-eye text-sm"></i>
-                    <span>Pratinjau Tugas</span>
+                    <span>Pratinjau</span>
                 </a>
-                <a href="{{ route('assignments.edit', $assignment->id) }}" class="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold text-xs rounded-xl border border-slate-200/80 dark:border-slate-700 transition">
+                <a href="{{ route('assignments.edit', $assignment->id) }}" class="flex-1 md:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl shadow-xs transition">
                     <i class="ti ti-edit text-sm"></i>
-                    <span>Edit Tugas</span>
+                    <span>Edit</span>
                 </a>
             </div>
         </div>
-    </x-slot>
-
-    <div class="space-y-5 sm:space-y-6" x-data="{ 
-        activeTab: 'all', 
-        searchQuery: '',
         openGradeModal: false, 
         currentSubId: null,
         currentUserName: '',

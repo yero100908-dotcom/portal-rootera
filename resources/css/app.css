@@ -1,3 +1,50 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    /* Mencegah horizontal scrollbar liar di mobile viewport */
+    html {
+        -webkit-text-size-adjust: 100%;
+        scroll-behavior: smooth;
+        overflow-x: hidden;
+    }
+
+    body {
+        min-height: 100dvh; /* Dynamic viewport height untuk mobile Chrome/Safari */
+        overflow-x: hidden;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+    }
+
+    /* Hilangkan highlight biru tap default pada perangkat layar sentuh */
+    button, a, input, select, textarea {
+        -webkit-tap-highlight-color: transparent;
+    }
+}
+
+@layer utilities {
+    /* Target sentuh minimal 44x44px (WCAG 2.5.5 / Apple Human Interface) */
+    .touch-target {
+        min-height: 44px;
+        min-width: 44px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Proteksi zero layout shift untuk media container */
+    .contain-layout {
+        contain: layout;
+    }
+
+    /* Scrollbar tersembunyi untuk navigasi swipe tab mobile */
+    .no-scrollbar::-webkit-scrollbar {
+        display: none;
+    }
+    .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+}

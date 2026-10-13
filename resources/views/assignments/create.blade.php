@@ -1,18 +1,13 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex items-center justify-between w-full">
-            <div class="min-w-0">
-                <div class="flex items-center gap-2 mb-1">
-                    <a href="{{ route('assignments.index') }}" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-white bg-slate-100 dark:bg-slate-800/80 transition group">
-                        <i class="ti ti-arrow-left group-hover:-translate-x-0.5 transition-transform"></i>
-                        <span>Kembali</span>
-                    </a>
-                </div>
-                <h1 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-                    <i class="ti ti-plus text-indigo-600 dark:text-indigo-400"></i>
-                    <span>Buat Tugas Baru</span>
-                </h1>
-            </div>
+        <div class="flex items-center gap-2 min-w-0">
+            <a href="{{ route('assignments.index') }}" class="p-1 -ml-1 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-white rounded-lg transition" title="Kembali ke Manajemen Tugas">
+                <i class="ti ti-arrow-left text-lg"></i>
+            </a>
+            <h2 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight truncate flex items-center gap-1.5">
+                <i class="ti ti-plus text-indigo-600 dark:text-indigo-400 shrink-0"></i>
+                <span class="truncate">Buat Tugas Baru</span>
+            </h2>
         </div>
     </x-slot>
 

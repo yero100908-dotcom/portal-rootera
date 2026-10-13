@@ -84,8 +84,8 @@ class AttendanceController extends Controller
     public function updateOfficeLocation(Request $request)
     {
         $currentUser = Auth::user();
-        if (! $currentUser->isOwner() && ! $currentUser->isAdmin()) {
-            return response()->json(['success' => false, 'message' => 'Akses ditolak.'], 403);
+        if (! $currentUser->canManageOfficeLocation()) {
+            return response()->json(['success' => false, 'message' => 'Akses ditolak. Hanya Owner dan Mentor yang berwenang mengubah lokasi kantor.'], 403);
         }
 
         $request->validate([
@@ -166,7 +166,7 @@ class AttendanceController extends Controller
 
         // Backend Geofencing Anti-Cheat Validation
         $geoResult = GeofencingService::isWithinOfficeRadius((float) $request->latitude, (float) $request->longitude);
-        $isBypassed = $request->boolean('bypass_geofence') && ($currentUser->isOwner() || $currentUser->isAdmin());
+        $isBypassed = $request->boolean('bypass_geofence') && $currentUser->canManageOfficeLocation();
 
         if (! $geoResult['is_allowed'] && ! $isBypassed) {
             return response()->json([

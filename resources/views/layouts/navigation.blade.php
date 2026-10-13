@@ -12,7 +12,7 @@
 
 <!-- Sidebar Drawer -->
 <aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
-       class="fixed md:static inset-y-0 left-0 z-50 w-72 md:w-64 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-r border-slate-200/80 dark:border-slate-800/80 flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 shrink-0 shadow-2xl md:shadow-none">
+       class="fixed md:static inset-y-0 left-0 z-50 w-[84vw] max-w-xs md:w-64 bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-r border-slate-200/80 dark:border-slate-800/80 flex flex-col transition-transform duration-300 ease-in-out md:translate-x-0 shrink-0 shadow-2xl md:shadow-none">
     
     <!-- Brand / Logo Header -->
     <div class="h-16 px-5 sm:px-6 flex items-center justify-between border-b border-slate-200/80 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-950/30">
@@ -25,8 +25,8 @@
                 <span class="text-[9px] font-bold text-indigo-600 dark:text-indigo-400 font-mono tracking-wider block leading-none">ENTERPRISE OS</span>
             </div>
         </a>
-        <button @click="sidebarOpen = false" class="md:hidden p-1.5 rounded-lg text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
-            <i class="ti ti-x text-xl"></i>
+        <button @click="sidebarOpen = false" aria-label="Tutup Menu" class="md:hidden touch-target p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+            <i class="ti ti-x text-2xl"></i>
         </button>
     </div>
 
@@ -180,7 +180,7 @@
     </div>
 
     <!-- User Profile Footer -->
-    <div class="p-4 border-t border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950/40">
+    <div class="p-4 pb-safe-bottom border-t border-slate-200 dark:border-slate-800/80 bg-slate-50 dark:bg-slate-950/40">
         <div class="flex items-center justify-between">
             <div class="flex items-center gap-3 min-w-0">
                 <div class="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-300 font-bold text-xs border border-slate-300 dark:border-slate-700 shrink-0">

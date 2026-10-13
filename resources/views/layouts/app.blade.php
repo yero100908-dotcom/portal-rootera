@@ -64,32 +64,34 @@
             }
         </style>
     </head>
-    <body class="h-full font-sans antialiased bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-indigo-500 selection:text-white transition-colors duration-200" x-data="{ sidebarOpen: false, isDarkMode: document.documentElement.classList.contains('dark') }">
+    <body class="min-h-[100dvh] font-sans antialiased bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 selection:bg-indigo-500 selection:text-white transition-colors duration-200 overflow-x-hidden" 
+          x-data="{ sidebarOpen: false, isDarkMode: document.documentElement.classList.contains('dark') }"
+          :class="{ 'overflow-hidden': sidebarOpen }">
         
-        <div class="min-h-screen flex flex-col md:flex-row">
+        <div class="min-h-[100dvh] flex flex-col md:flex-row">
             <!-- Sidebar Navigation (Desktop & Mobile Drawer) -->
             @include('layouts.navigation')
 
             <!-- Main Content Area -->
-            <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 transition-colors duration-200">
+            <div class="flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-950 transition-colors duration-200 overflow-x-hidden">
                 <!-- Top Header Bar -->
-                <header class="sticky top-0 z-30 bg-white/85 dark:bg-slate-950/85 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 px-3 sm:px-6 py-3 sm:py-3.5 flex items-center justify-between gap-2 sm:gap-4 transition-colors duration-200">
-                    <div class="flex items-center gap-2 sm:gap-3 min-w-0">
-                        <!-- Mobile Sidebar Hamburger Toggle -->
-                        <button @click="sidebarOpen = true" aria-label="Open Navigation Menu" class="md:hidden p-2 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900 border border-slate-200 dark:border-slate-800 transition shrink-0">
-                            <i class="ti ti-menu-2 text-lg sm:text-xl"></i>
+                <header class="sticky top-0 z-30 bg-white/85 dark:bg-slate-950/85 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 px-2.5 sm:px-6 h-14 sm:h-16 shrink-0 flex items-center justify-between gap-2 sm:gap-4 transition-colors duration-200">
+                    <div class="flex items-center gap-2 sm:gap-3 min-w-0 flex-1 overflow-hidden">
+                        <!-- Mobile Sidebar Hamburger Toggle (Touch-friendly 44x44px) -->
+                        <button @click="sidebarOpen = true" aria-label="Open Navigation Menu" class="md:hidden touch-target p-2 rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900 border border-slate-200 dark:border-slate-800 transition shrink-0">
+                            <i class="ti ti-menu-2 text-xl"></i>
                         </button>
 
                         @isset($header)
-                            <div class="min-w-0 truncate">{{ $header }}</div>
+                            <div class="min-w-0 flex-1 overflow-hidden flex items-center">{{ $header }}</div>
                         @else
                             <h1 class="text-sm sm:text-base font-semibold text-slate-900 dark:text-white truncate">SmartAttend Pro</h1>
                         @endisset
                     </div>
 
                     <!-- Header Quick Actions, Theme Switcher & User Pill -->
-                    <div class="flex items-center gap-1.5 sm:gap-3 shrink-0">
-                        <a href="{{ route('attendance.create') }}" class="hidden sm:inline-flex items-center gap-2 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg transition shadow-sm">
+                    <div class="flex items-center gap-1 sm:gap-2.5 shrink-0">
+                        <a href="{{ route('attendance.create') }}" class="hidden lg:inline-flex items-center gap-2 px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg transition shadow-sm">
                             <i class="ti ti-camera text-sm"></i> Presensi Wajah
                         </a>
 
@@ -107,13 +109,13 @@
                             " 
                             type="button"
                             title="Toggle Light / Dark Theme" 
-                            class="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 transition duration-200 flex items-center justify-center"
+                            class="p-2 sm:p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-900 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 transition duration-200 flex items-center justify-center shrink-0"
                         >
                             <template x-if="isDarkMode">
-                                <i class="ti ti-sun text-amber-400 text-base"></i>
+                                <i class="ti ti-sun text-amber-400 text-sm sm:text-base"></i>
                             </template>
                             <template x-if="!isDarkMode">
-                                <i class="ti ti-moon-stars text-indigo-600 text-base"></i>
+                                <i class="ti ti-moon-stars text-indigo-600 text-sm sm:text-base"></i>
                             </template>
                         </button>
 
@@ -128,17 +130,17 @@
                             $userRole = Auth::user()->role ?? 'karyawan';
                         @endphp
 
-                        <div class="flex items-center gap-2 pl-2 border-l border-slate-200 dark:border-slate-800">
-                            <span class="px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wider rounded-md border {{ $roleColors[$userRole] ?? 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700' }}">
+                        <div class="flex items-center gap-1 sm:gap-2 pl-1.5 sm:pl-2 border-l border-slate-200 dark:border-slate-800 shrink-0">
+                            <span class="px-2 py-0.5 sm:px-2.5 sm:py-1 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider rounded-md border {{ $roleColors[$userRole] ?? 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700' }}">
                                 {{ $userRole }}
                             </span>
 
                             <!-- Explicit Logout / Ganti Akun Button -->
                             <form method="POST" action="{{ route('logout') }}" class="inline">
                                 @csrf
-                                <button type="submit" title="Logout dari Sesi Ini" class="inline-flex items-center gap-1.5 px-3 py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 rounded-md text-xs font-semibold transition">
-                                    <i class="ti ti-logout text-sm"></i>
-                                    <span class="hidden sm:inline">Logout</span>
+                                <button type="submit" title="Logout dari Sesi Ini" class="inline-flex items-center justify-center p-2 sm:px-3 sm:py-1 bg-rose-500/10 hover:bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 rounded-md text-xs font-semibold transition shrink-0">
+                                    <i class="ti ti-logout text-sm sm:text-base"></i>
+                                    <span class="hidden sm:inline ml-1.5">Logout</span>
                                 </button>
                             </form>
                         </div>
@@ -185,12 +187,12 @@
                 @endif
 
                 <!-- Main Content Body -->
-                <main class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
+                <main class="flex-1 px-3 py-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-4 sm:space-y-6">
                     {{ $slot }}
                 </main>
 
                 <!-- Footer -->
-                <footer class="border-t border-slate-200 dark:border-slate-900 py-4 px-6 text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2 transition-colors duration-200">
+                <footer class="border-t border-slate-200 dark:border-slate-900 py-4 px-6 pb-safe-bottom text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2 transition-colors duration-200">
                     <p>&copy; {{ date('Y') }} SmartAttend Enterprise &bull; Modular Laravel Solution</p>
                     <div class="flex items-center gap-4 text-slate-500 dark:text-slate-400">
                         <span>v2.5.0</span>

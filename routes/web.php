@@ -17,6 +17,10 @@ Route::get('/', function () {
     return redirect()->route('login');
 });
 
+Route::get('/portal', function () {
+    return view('welcome');
+})->name('portal');
+
 Route::middleware(['auth'])->group(function () {
 
     // Main Dashboard
@@ -34,10 +38,14 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/scan', [AttendanceController::class, 'store'])->name('store');
         Route::get('/export', [AttendanceController::class, 'export'])->name('export');
 
+        // Pengaturan Titik Lokasi Kantor Geofence (Khusus Owner & Mentor)
+        Route::middleware(['role:owner,mentor'])->group(function () {
+            Route::post('/update-office-location', [AttendanceController::class, 'updateOfficeLocation'])->name('update-office-location');
+        });
+
         // Admin, Owner & IT Verification
         Route::middleware(['role:owner,admin,it'])->group(function () {
             Route::post('/{attendance}/verify', [AttendanceController::class, 'verify'])->name('verify');
-            Route::post('/update-office-location', [AttendanceController::class, 'updateOfficeLocation'])->name('update-office-location');
         });
     });
 
@@ -83,8 +91,8 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // Modul 8: Manajemen Tugas / Assignment (Google Classroom-like)
-    // Rute Pembuat & Pengelola Tugas (Owner, Admin, Mentor) - Harap didaftarkan sebelum route wildcard {assignment}
-    Route::middleware(['role:owner,admin,mentor'])->group(function () {
+    // Rute Pembuat & Pengelola Tugas (Owner, Mentor) - Harap didaftarkan sebelum route wildcard {assignment}
+    Route::middleware(['role:owner,mentor'])->group(function () {
         Route::get('assignments/create', [AssignmentController::class, 'create'])->name('assignments.create');
         Route::post('assignments', [AssignmentController::class, 'store'])->name('assignments.store');
         Route::get('assignments/{assignment}/edit', [AssignmentController::class, 'edit'])->name('assignments.edit');

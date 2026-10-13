@@ -1,22 +1,27 @@
 <x-app-layout>
     <x-slot name="header">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 w-full">
+        <h2 class="text-sm sm:text-base font-bold text-slate-900 dark:text-white tracking-tight truncate flex items-center gap-2">
+            <i class="ti ti-calendar-user text-indigo-600 dark:text-indigo-400 shrink-0"></i>
+            <span class="truncate">Rekap Absensi & Log Presensi</span>
+        </h2>
+    </x-slot>
+
+    <div class="space-y-6">
+        <!-- Page Hero Banner -->
+        <div class="bg-white/90 dark:bg-slate-900/90 backdrop-blur-sm border border-slate-200/80 dark:border-slate-800/80 rounded-2xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
-                <h1 class="text-xl font-bold text-slate-900 dark:text-white tracking-tight">Rekap Absensi & Log Presensi</h1>
+                <h1 class="text-base sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight">Rekap Absensi & Log Presensi</h1>
                 <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Histori kehadiran real-time lengkap dengan bukti foto, koordinat GPS & verifikasi geofencing</p>
             </div>
-            <div class="flex items-center gap-2">
-                <a href="{{ route('attendance.export', request()->all()) }}" class="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs rounded-lg shadow-sm transition flex items-center gap-1.5">
+            <div class="flex items-center flex-wrap gap-2 shrink-0">
+                <a href="{{ route('attendance.export', request()->all()) }}" class="flex-1 sm:flex-initial px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5">
                     <i class="ti ti-download text-sm"></i> Ekspor CSV
                 </a>
-                <a href="{{ route('attendance.create') }}" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-lg shadow-sm transition flex items-center gap-1.5">
+                <a href="{{ route('attendance.create') }}" class="flex-1 sm:flex-initial px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs rounded-xl shadow-xs transition flex items-center justify-center gap-1.5">
                     <i class="ti ti-camera text-sm"></i> Scan Kamera
                 </a>
             </div>
         </div>
-    </x-slot>
-
-    <div class="space-y-6">
         <!-- Filter Card -->
         <div class="bg-white dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800/80 rounded-xl p-4 sm:p-5 shadow-sm transition-colors duration-200">
             <form method="GET" action="{{ route('attendance.index') }}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
